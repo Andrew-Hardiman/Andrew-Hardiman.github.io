@@ -1,0 +1,14 @@
+[
+    {
+        "title": "CTF Write-up: Example Challenge",
+        "date": "2024-09-15",
+        "summary": "A brief summary of the CTF write-up.",
+        "url": "ctf-writeup-example.html"
+    },
+    {
+        "title": "Another CTF Write-up",
+        "date": "2024-09-16",
+        "summary": "Summary of another CTF write-up.",
+        "url": "ctf-writeup-another.html"
+    }
+]
