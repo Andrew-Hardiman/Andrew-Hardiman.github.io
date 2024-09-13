@@ -1,9 +1,9 @@
 [
     {
-        "title": "CTF Write-up: Example Challenge",
-        "date": "2024-09-15",
-        "summary": "A brief summary of the CTF write-up.",
-        "url": "post1.html"
+        "title": "TryHackMe | Pickle Rick",
+        "date": "2024-09-13",
+        "summary": "A Rick and Morty CTF. Help turn Rick back into a human!",
+        "url": "thm_picklerick.html"
     },
     {
         "title": "Another CTF Write-up",
