@@ -53,6 +53,12 @@
                 <p>Inspect the elements of the landing page. You will see that there is a comment with the username "R1ckRul3s". Write this down!</p>
                 <img src="found_username.png" alt="Solution screenshot">
             </section>
+
+            <section id="Two">
+                <h2>Step Two</h2>
+                <p>Enumerate the websites directories...</p>
+                <pre><code>case@local:~$ gobuster dir -u http://<address> -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt</code></pre>
+            </section>
             
             <section id="solution">
                 <h2>Solution</h2>
