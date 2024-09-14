@@ -49,13 +49,15 @@ img {
 }
 
 pre {
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
+    background-color: #000;
+    border: 1px solid #0f0;
+    color: #0f0;
     padding: 10px;
     overflow-x: auto;
     white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 code {
-    font-family: monospace;
+    color: #0f0;
 }
