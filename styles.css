@@ -30,3 +30,14 @@ nav ul li .dropdown-content li {
 nav ul li:hover .dropdown-content {
     display: block;
 }
+
+pre {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+code {
+    font-family: monospace;
+}
