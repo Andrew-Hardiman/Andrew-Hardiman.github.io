@@ -60,6 +60,8 @@
                 <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
                 <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertisied by the webserver and will look for any sensitive files also...</p>
                 <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
+                <p>There is quite a lot that could be interesting to us in both of the scan output files. Firstly, there is a "robots.txt" file, identified by the gobuster scan. Typically this file is used by websites to give instructions to web crawlers. However, it might provide detail as to hidden directories or files, or even give clues to sensitive information. Let us see if we can request it directly in the URL...</p>
+                <img src="robots_file.png" alt="Solution screenshot">
             </section>
             
             <section id="solution">
