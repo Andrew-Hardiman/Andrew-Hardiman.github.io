@@ -57,7 +57,9 @@
             <section id="Two">
                 <h2>Step Two</h2>
                 <p>Enumerate the websites directories...</p>
-                <pre><code>case@local:~$ gobuster dir -u http://<address> -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt</code></pre>
+                <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
+                <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertisied by the webserver and will look for any sensitive files also...</p>
+                <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
             </section>
             
             <section id="solution">
