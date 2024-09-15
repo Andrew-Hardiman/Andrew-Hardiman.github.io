@@ -62,6 +62,9 @@
                 <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
                 <p>There is quite a lot that could be interesting to us in both of the scan output files. Firstly, there is a "robots.txt" file, identified by the gobuster scan. Typically this file is used by websites to give instructions to web crawlers. However, it might provide detail as to hidden directories or files, or even give clues to sensitive information. Let us see if we can request it directly in the URL...</p>
                 <img src="robots_file.png" alt="Solution screenshot">
+                <p>We can! This is non-standard content for the "robots.txt" file. Write this down! Is this the password for the username we found in step one?</p>
+                <p>The contents of the nikto scan output file has this line "+ GET /login.php: Admin login page/section found.". Let us see if we can request that page, and if so, enter what we now believe to be valid credentials. What do you know, it worked, we are now logged in...</p>
+                <img src="pickle_landing.png" alt="Solution screenshot">
             </section>
             
             <section id="solution">
