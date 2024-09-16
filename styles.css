@@ -59,10 +59,9 @@ pre {
 }
 
 code {
+    display: block;
+    padding-left: 0;
     color: #0f0;
 }
 
-pre code {
-    text-align: left;    
-}
 
