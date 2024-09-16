@@ -95,7 +95,7 @@ Connection received on 10.10.43.192 37260
 whoami
 www-data
                 </code></pre>
-                <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment.Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
+                <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment. Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
                 <pre><code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
                 <p>It worked a treat...</p>
                 <pre><code>www-data@ip-10-10-43-192:/var/www/html$</code></pre>
