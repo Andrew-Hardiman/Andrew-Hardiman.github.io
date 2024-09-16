@@ -61,3 +61,8 @@ pre {
 code {
     color: #0f0;
 }
+
+pre code {
+    text-align: left;    
+}
+
