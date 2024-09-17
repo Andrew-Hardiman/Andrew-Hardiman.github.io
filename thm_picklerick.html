@@ -107,7 +107,7 @@ www-data
                 <h2>Step Four</h2>
                 <p>Okay, so we have a stable/interactive reverse shell. We still only have "www-data" privileges. Let see what this user can do with "sudo". Using the command "sudo -l" we get the following output:</p>
                 <pre><code>User www-data may run the following commands on ip-10-10-29-11:
-                (ALL) NOPASSWD: ALL
+    (ALL) NOPASSWD: ALL
                 </code></pre>
                 <p>This is now effectively game over. This is telling us that our current logged in user can execute commands as any user, that no password is required to do so, and that we can run any command. We can simply escalate to root now by executing "sudo /bin/bash". We are now root!</p>
                 <pre><code>root@ip-10-10-20-11:/var/www/html#</code></pre>
