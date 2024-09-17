@@ -48,13 +48,13 @@
             </section>
             
             <section id="One">
-                <h2>Step One</h2>
+                <h2>Step One - Inspect the Source</h2>
                 <p>Inspect the elements of the landing page. You will see that there is a comment with the username "R1ckRul3s". Write this down!</p>
                 <img src="found_username.png" alt="not_found.png">
             </section>
 
             <section id="Two">
-                <h2>Step Two</h2>
+                <h2>Step Two - Enumeration</h2>
                 <p>Enumerate the websites directories...</p>
                 <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
                 <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertisied by the webserver and will look for any sensitive files also...</p>
@@ -67,7 +67,7 @@
             </section>
 
             <section id="Three">
-                <h2>Step Three</h2>
+                <h2>Step Three - A Reverse Shell</h2>
                 <p>We now have a active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
                 <img src="pickle_form.png" alt="not_found.png">
                 <p>We effectively have a web shell. "whoami" is showing we are currently logged in as "www-data". This is good. However, "www-data" is commonly the user created when the web server software is installed and therefore is, typically, a low-privileged user created specifically for running web server processes. I wonder if we can submit the form with a command to open a network connection and execute a shell? Let us try with netcat. First we need a listener on our local/attacking machine.. </p>
@@ -103,7 +103,7 @@ www-data
             </section>
 
             <section id="Four">
-                <h2>Step Four</h2>
+                <h2>Step Four - Privilege Escalation</h2>
                 <p>Okay, so we have a stable/interactive reverse shell. We still only have "www-data" privileges. Let see what this user can do with "sudo". Using the command "sudo -l" we get the following output:</p>
                 <pre><code>User www-data may run the following commands on ip-10-10-29-11:
     (ALL) NOPASSWD: ALL
