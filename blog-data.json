@@ -1,14 +1,14 @@
 [
     {
+        "title": "Blue",
+        "date": "2024-10-26",
+        "summary": "Deploy & hack into a Windows machine, leveraging common misconfigurations issues.",
+        "url": "thm_blue.html"
+    },
+    {
         "title": "Pickle Rick",
         "date": "2024-09-13",
         "summary": "A Rick and Morty CTF. Help turn Rick back into a human!",
         "url": "thm_picklerick.html"
-    },
-    {
-        "title": "Another CTF Write-up",
-        "date": "2024-09-16",
-        "summary": "Summary of another CTF write-up.",
-        "url": "ctf-writeup-another.html"
     }
 ]
