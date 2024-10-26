@@ -53,6 +53,10 @@
                 <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="blue_output.png" alt="not_found.png">
+                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceeding learning modules have been almost exclusively referring to the EternalBlue exploit (MS17-010). Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
+                <pre><code>case@local:~$ nmap -n -v --script=vuln -p 445 -oX blue_script_vulns.xml 10.10.34.160</code></pre>
+                <p>Here is a truncated snapshot of our scan output.</p>
+                <img src="blue_script_vulns.png" alt="not_found.png">
             </section>
 
             <section id="Three">
