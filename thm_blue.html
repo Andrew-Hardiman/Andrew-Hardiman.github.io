@@ -34,7 +34,7 @@
     
             <section id="introduction">
                 <h2>Introduction</h2>
-                <p>Deploy & hack into a Windows machine, leveraging common misconfigurations issues.</p>
+                <p>Nearly every write-up I could find on this room followed the steps exactly, i.e. ran the commands given in the room guidance, primarily running Metasploit modules. I also searched online, where I found some more interesting manual approaches. I have taken bits and pieces from these walkthroughs, plus added a little of my own ideas, such as using Mimikatz to extract the password hashes. Hopefully, this write-up will be useful to individuals wanting to approach the challenge a little differently and without the help of Metasploit (although I do use msfvenom for my payload).</p>
             </section>
             
             <section id="objective">
@@ -51,11 +51,8 @@
                 <h2>Step One - Enumeration</h2>
                 <p>Perform a basic network mapper scan. We do not need DNS resolution (-n), let's perform a TCP SYN scan (-sS, a little bit stealthier), and output to an xml file (-oX).</p>
                 <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
-                
-                <img src="robots_file.png" alt="not_found.png">
-                <p>We can! This is non-standard content for the "robots.txt" file. Write this down! Is this the password for the username we found in step one?</p>
-                <p>The contents of the nikto scan output file has this line "+ GET /login.php: Admin login page/section found.". Let us see if we can request that page, and if so, enter what we now believe to be valid credentials. What do you know, it worked, we are now logged in...</p>
-                <img src="pickle_landing.png" alt="not_found.png">
+                <p>Here is a truncated snapshot of our scan output.</p>
+                <img src="blue_output.png" alt="not_found.png">
             </section>
 
             <section id="Three">
