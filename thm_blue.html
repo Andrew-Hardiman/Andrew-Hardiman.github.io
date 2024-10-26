@@ -30,36 +30,28 @@
     
     <main>
         <article>
-            <h1>CTF Write-up: Pickle Rick</h1>
+            <h1>CTF Write-up: Blue</h1>
     
             <section id="introduction">
                 <h2>Introduction</h2>
-                <p>A Rick and Morty CTF. Help turn Rick back into a human!</p>
+                <p>Deploy & hack into a Windows machine, leveraging common misconfigurations issues.</p>
             </section>
             
             <section id="objective">
                 <h2>Objective</h2>
-                <p>This Rick and Morty-themed challenge requires you to exploit a web server and find three ingredients to help Rick make his potion and transform himself back into a human from a pickle.</p>
+                <p>Gain access, dump the stored SAM passwords, crack the hash and find the flags.</p>
             </section>
             
             <section id="setup">
                 <h2>Setup</h2>
-                <p>Either use the AttackBox or do it properly and use the VPN.</p>
+                <p>Connect via the VPN.</p>
             </section>
             
             <section id="One">
-                <h2>Step One - Inspect the Source</h2>
-                <p>Inspect the elements of the landing page. You will see that there is a comment with the username "R1ckRul3s". Write this down!</p>
-                <img src="found_username.png" alt="not_found.png">
-            </section>
-
-            <section id="Two">
-                <h2>Step Two - Enumeration</h2>
-                <p>Enumerate the websites directories...</p>
-                <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
-                <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertisied by the webserver and will look for any sensitive files also...</p>
-                <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
-                <p>There is quite a lot that could be interesting to us in both of the scan output files. Firstly, there is a "robots.txt" file, identified by the gobuster scan. Typically this file is used by websites to give instructions to web crawlers. However, it might provide detail as to hidden directories or files, or even give clues to sensitive information. Let us see if we can request it directly in the URL...</p>
+                <h2>Step One - Enumeration</h2>
+                <p>Perform a basic network mapper scan. We do not need DNS resolution (-n), let's perform a TCP SYN scan (-sS, a little bit stealthier), and output to an xml file (-oX).</p>
+                <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
+                
                 <img src="robots_file.png" alt="not_found.png">
                 <p>We can! This is non-standard content for the "robots.txt" file. Write this down! Is this the password for the username we found in step one?</p>
                 <p>The contents of the nikto scan output file has this line "+ GET /login.php: Admin login page/section found.". Let us see if we can request that page, and if so, enter what we now believe to be valid credentials. What do you know, it worked, we are now logged in...</p>
