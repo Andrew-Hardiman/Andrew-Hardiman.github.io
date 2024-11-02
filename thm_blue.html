@@ -113,7 +113,7 @@ ERROR: A required privilege is not held by the client.</code></pre>
             <p>Fortunately for us we have uploaded the excellent post exploitation tool Mimikatz. Mimikatz has the following command <i>privilege::debug</i>. When you run this command Mimikatz attempts to grant the process <i>SeDebugPrivilege</i>, which is a Windows privilege that allows a user to debug processes owned by other users. Importantly, it includes the ability to read and write to the memory of other processes, including retrieving sensitive information such as passwords and hashes, from processes like "lsass.exe" (the Local Security Authority Subsystem), which manages user logins and authentication. </p>
             <p>Start Mimikatz.</p>
             <pre><code>C:\Windows\system32>mimikatz.exe</code></pre>
-            <p>Run the following command, in order to grant process <i>SeDebugPrivilege</i>. You should see the OK message if this is successful. Note, I had an issue here, and I fell down a rabbit hole for several hours. The issue in the end was that I had originally upload the 32-bit version of Mimikatz, when the target system we are actualy trying to exploit was a 64-bit system.</p>
+            <p>Run the following command, in order to grant process <i>SeDebugPrivilege</i>. You should see the OK message if this is successful. Note, I had an issue here, and I fell down a rabbit hole for several hours. The issue in the end was that I had originally uploaded the 32-bit version of Mimikatz, when the target system we are actualy trying to exploit is a 64-bit system.</p>
             <pre><code>mimikatz # privilege::debug
 Privilege '20' OK</code></pre>
             <p>We can now try and export the SAM and SYSTEM hives again.</p>
@@ -146,9 +146,19 @@ User : Jon
 
             <section id="Four">
                 <h2>Step Four - Hash Cracking</h2>
-                <p></p>
+                <p>The challenge requires us to crack the password of the "non-default" user. We can see from our previous, Mimikatz, output that the non-default user is "Jon". Let us crack the hash. We could use the Python script "hash-id.py" to establish the hash format, but given that this is a beginner CTF and that we have retrieved these hashes from a Windows Security Accounts Manager (SAM) hive, it is likely that these are NT hashes. Let us use John the Ripper with format specific cracking, in order to see if our assumptions are correct.</p>
+                <p>Firstly save the hash for user Jon to a text file. Then pass the hash to JTR.</p>
+                <pre><code>case@local:~/src/john/run$ ./john --format=NT --fork=8 --wordlist=/usr/share/wordlists/rockyou.txt jon_hash.txt</code></pre>
+                <p>We now have user "Jon's" password.</p>
+                <pre><code>Using default input encoding: UTF-8
+Loaded 1 password hash (NT [MD4 256/256 AVX2 8x3])
+Node numbers 1-8 of 8 (fork)
+Note: Passwords longer than 27 rejected
+Press 'q' or Ctrl-C to abort, 'h' for help, almost any other key for status
+alq.......... (?)</code></pre>
+                <p>I have not actually shown the password, do it yourself!</p>
             </section>
-            
+
             <section id="solution">
                 <h2>Solution</h2>
                 <p>First flag is here:</p>
