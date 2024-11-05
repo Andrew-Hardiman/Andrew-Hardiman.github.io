@@ -1,6 +1,6 @@
 [
     {
-        "title": "Blue",
+        "title": "Blue (CVE-2017-0143 | ms17-010)",
         "date": "2024-10-26",
         "summary": "Deploy & hack into a Windows machine, leveraging common misconfigurations issues.",
         "url": "thm_blue.html"
