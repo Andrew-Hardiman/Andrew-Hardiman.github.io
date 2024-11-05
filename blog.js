@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data.forEach(post => {
                 const postElement = document.createElement('div');
                 postElement.innerHTML = `
-                    <h3><a href="${post.url}">${post.title}</a></h3>
+                    <h3><a href="${post.url}">${post.title}</a>${post.vuln}</h3>
                     <p>${post.summary}</p>
                     <p><em>${post.date}</em></p>
                 `;
