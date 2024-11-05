@@ -94,7 +94,7 @@ C:\Windows\system32></code></pre>
 cmd.exe /c whoami
 nt authority\system</code></pre>
                 <p>We have gained <i>NT AUTHORITY\SYSTEM</i> privileges. This is the highest level of privilege on Windows, similar to "root" on Linux. Therefore, we now have full administrative control on the target machine and should be able to perform any action on the system, including altering files, changing settings and installing programs. Given this information we can now upload Mimikatz, which will allow us to extract additional sensitive information, such as password hashes and kerberos tickets (Mimikatz is a post-exploitation tool designed to allow attackers to extract sensitive data, like passwords). Let us upload Mimikatz to our target, with a view to dumping the NTLM hashes (part of this CTF is cracking a specific password, so we will need this information). </p>
-                <p>You can download Mimikatz binaries from the GitHub <a href="https://github.com/gentilkiwi/mimikatz/releases"> releases repo.</a>This might be blocked by your browser as a dangerous file. In which case, simply Request it:</p>
+                <p>You can download Mimikatz binaries from the GitHub <a href="https://github.com/gentilkiwi/mimikatz/releases"> releases repo.</a> This might be blocked by your browser as a dangerous file. In which case, simply Request it:</p>
                 <pre><code>wget https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20220919/mimikatz_trunk.zip</code></pre>
                 <p> Next, start a Python HTTP server. I have a Python virtual environment setup, so the command looks like this.</p>
                 <pre><code>(kcah_py_env) case@local:~$ python3 -m http.server 8001</code></pre>
@@ -164,7 +164,7 @@ alq.......... (?)</code></pre>
             <section id="solution">
                 <h2>Solution</h2>
                 <p>First flag is here:</p>
-                <pre><code>C:\>type flag.txt
+                <pre><code>C:\>type flag1.txt
 type flag.txt
 flag{XXXXX}</code></pre>
                 <p>The second flag is here:</p>
