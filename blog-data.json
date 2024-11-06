@@ -1,16 +1,18 @@
 [
     {
-        "title": "Blue",
-        "vuln" : " (CVE-2017-0143 | ms17-010)",
         "date": "2024-10-26",
+        "difficulty" : "Easy",
         "summary": "Deploy & hack into a Windows machine, leveraging common misconfigurations issues.",
-        "url": "thm_blue.html"
+        "title": "Blue",
+        "url": "thm_blue.html",
+        "vuln" : " (CVE-2017-0143 | ms17-010)"
     },
     {
-        "title": "Pickle Rick",
-        "vuln" : " (Web Application Exploit)",
         "date": "2024-09-13",
+        "difficulty" : "Easy",
         "summary": "A Rick and Morty CTF. Help turn Rick back into a human!",
-        "url": "thm_picklerick.html"
+        "title": "Pickle Rick",
+        "url": "thm_picklerick.html",
+        "vuln" : " (Web Application Exploit)"
     }
 ]
