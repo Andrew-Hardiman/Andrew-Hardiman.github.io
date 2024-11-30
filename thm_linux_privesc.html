@@ -58,12 +58,10 @@
 +--------------------+
 | root@localhost     |
 +--------------------+</code></pre>
+                <p>Next, let us see what privileges are assigned to our currently logged-in MySQL user, in our case root. Understanding these permissions will help us identify our potential next steps and what avenues are open to us for further exploiting the machine.</p>
+                <pre><code>mysql> SHOW GRANTS FOR CURRENT_USER;</code></pre>
+
                 
-                <p>Here is a truncated snapshot of our scan output.</p>
-                <img src="blue_script_vulns.png" alt="not_found.png">
-                <p>Our suspicions have been confirmed, this machine is indeed vulnerable to "Remote Code Execution vulnerability in Mircosoft SMBv1 servers (ms17-010)". We have the CVE ID also. A quick search in exploit-db shows a number of available exploits.</p>
-                <img src="ms17_exploits.png" alt="not_found.png">
-                <p>Anyway, as mentioned in the introduction, most write-ups for this room follow the exact same patterns, so I thought I would research EternalBlue on the internet, in order to see what I could find. I came across this GitHub repo: <a href="https://github.com/3ndG4me/AutoBlue-MS17-010">3ndG4me/AutoBlue</a>. The README states "This version of the exploit {EternalBlue} is prepared in a way where you can exploit EternalBlue WITHOUT Metasploit". This is exactly what I want to do. </p>
             </section>
             
             <section id="Two">
