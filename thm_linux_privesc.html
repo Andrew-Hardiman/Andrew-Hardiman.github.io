@@ -49,12 +49,16 @@
             
             <section id="One">
                 <h2>Technique One - Service Exploits</h2>
-                <p>Perform a basic network mapper scan. We do not need DNS resolution (-n), let us perform a TCP SYN scan (-sS, a little bit stealthier), and output to an xml file (-oX).</p>
-                <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
-                <p>Here is a truncated snapshot of our scan output.</p>
-                <img src="blue_output.png" alt="not_found.png">
-                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceeding learning modules have been almost exclusively referring to the EternalBlue exploit. Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
-                <pre><code>case@local:~$ nmap -n -v --script=vuln -p 445 -oX blue_script_vulns.xml 10.10.34.160</code></pre>
+                <p>The first challenge informs us that there is an incorrectly configured MySQL service running as root. It also tells us there is no password! Let us start a command-line client session and connect to the MySQL server as the user root.</p>
+                <pre><code>user@debian:~$ mysql -u root</code></pre>
+                <p>Sure enough the connection was successful. No password required!</p>
+                <pre><code>mysql> SELECT USER();
++--------------------+
+| USER()             |
++--------------------+
+| root@localhost     |
++--------------------+</code></pre>
+                
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="blue_script_vulns.png" alt="not_found.png">
                 <p>Our suspicions have been confirmed, this machine is indeed vulnerable to "Remote Code Execution vulnerability in Mircosoft SMBv1 servers (ms17-010)". We have the CVE ID also. A quick search in exploit-db shows a number of available exploits.</p>
