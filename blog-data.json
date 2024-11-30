@@ -4,7 +4,8 @@
         "difficulty" : "Medium",
         "summary": "Linux Privilege Escalation on a Debian VM.",
         "title": "Linux PrivEsc",
-        "url": "thm_linux_privesc.html"
+        "url": "thm_linux_privesc.html",
+        "vuln" : ""
     },
     {
         "date": "2024-10-26",
