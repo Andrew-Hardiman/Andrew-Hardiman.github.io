@@ -61,8 +61,8 @@
                 <p>Next, let us see what privileges are assigned to our currently logged-in MySQL user, in our case root. Understanding these permissions will help us identify our potential next steps and what avenues are open to us for further exploiting the machine.</p>
                 <pre><code>mysql> SHOW GRANTS FOR CURRENT_USER;</code></pre>
                 <p>Gives the output: </p>
-                <pre><code>+-----------------------------------------------------------+
-| Grants for root@localhost |
+                <pre><code>+--------------------------------------------------------------------+
+| Grants for root@localhost                                                                     |
 +---------------------------------------------------------------------+
 | GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION |
 +---------------------------------------------------------------------+</code></pre>
