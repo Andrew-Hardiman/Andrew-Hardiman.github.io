@@ -71,9 +71,11 @@
 
                 
             </section>
+
+
             
             <section id="Two">
-                <h2>Step Two - Gain Access</h2>
+                <h2>Technique Two - </h2>
                 <p>I now know the machine is vulnerable to CVE-2017-0143. I have also found an interesting GitHub repo that includes some relevant, EternalBlue, exploit code. The repo actually contains the following file "eternalblue_kshellcode_x64.asm". This is an x64 assembly file, containing 64-bit kernel shellcode (kernel shellcode is a type of shellcode that runs with kernel-level (ring 0) privileges, i.e. full access to system hardware, memory etc). The repo even comes with shell scripts for assembling the entire payload, reverse shell included. However, this is a learning process, so let us do some of this manually.</p>
                 <p>A quick look at the script "shell_prep.sh" and we can quickly see how this is achieved. The shell runs the following command.</p>
                 <pre><code>nasm -f bin eternalblue_kshellcode_x64.asm -o sc_x64_kernel.bin</code></pre>
