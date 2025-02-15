@@ -177,14 +177,31 @@ User user may run the following commands on this host:
 root</code></pre>
                 <p><strong>Congratulations, you own the system!</strong></p>
                 <p>There is an "extra credit" with this particular part of the challenge. We saw eariler that our low-level user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the techinque already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
+                <p><strong>Reading the root hash with Apache2</strong></p>
+                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privilege to root. Let us further assume that both "/etc/shadow" and "/etc/passwd" are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" and we see the following:</p>
+                <pre><code>user@debian:~$ sudo -l
+User user may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/apache2</code></pre>
+                <p>.. we can use <strong>Apache2</strong> in order to "dump" the password hash of the root user. By executing Apache2 and passing "/etc/shadow" as a configuration file, Apache will try to parse it as a valid Apache configuration file. Apache will likely fail to start, as "/etc/shadow" is not a valid Apache configuration file and it is not in Apache's expected configuration format. This would not normally pose a security issue, as "/etc/shadow" is configured to only be readble by the root user. However, being as though we can run Apache as the root user, using sudo, Apache will, in turn, attempt to read "/etc/shadow" as root. When Apache fails to parse "/etc/shadow" it might reveal some content from the file in its error message. Let's try it and see:</p>
+                <pre><code>user@debian:~$ sudo /usr/sbin/apache2 -f /etc/shadow 
+Syntax error on line 1 of /etc/shadow:
+Invalid command 'root:$6$Tb/euwmK$................'</code></pre>
+                <p>Sure enough it worked! Apache kindly printed the root password hash to the terminal for us. We can now attempt to crack this hash with John the Ripper.</p>
+                <p>We can use format specific cracking, as we know the identifier "$6$" refers to the <strong>sha512crypt</strong> hash type. Furthermore, this is a Linux shadow file hash, modern Linux distros use <strong>sha512crypt</strong> (NB: sha512crypt are NOT the same as SHA-512). So let's try and crack this mutha:</p>
+                <pre><code>user@local:~/src/john/run$ ./john --format=sha512crypt --fork=8 --wordlist={wordlist_path} {hash_file_path}</code></pre>
+                <p>This was successful, but I will will not show the password here, so you can do the work yourself! We can now switch to the root user. Having done so, we will have successfully owned the system:</p>
+                <pre><code>user@debian:~$ su root
+Password:
+root@debian:/home/user# whoami
+root</code></pre>
+            </section>
+            <section id="Six">
+                <h2>Sudo - Environment Variables</h2>
             </section>
 
 
 
                 
-            <section id="Six">
-                <h2>Sudo - Environment Variables</h2>
-            </section>
         </article>
     </main>
 
