@@ -197,6 +197,28 @@ root</code></pre>
             </section>
             <section id="Six">
                 <h2>Sudo - Environment Variables</h2>
+                <p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
+                <pre><code>user@debian:~$ sudo -l
+Matching Defaults entries for user on this host:
+    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
+                
+User user may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/iftop
+    (root) NOPASSWD: /usr/bin/find
+.... {truncated}</code></pre>
+                <p>We will ignore the commands section for now, as this was discussed in detail in the last section of this write up, "Shell Escape Sequences". There is an interesting section at the top of the terminal output, "Matching Defaults entries for user on this host". This section of the "sudo -l" output specifies the <strong>default sudo settings</strong> that apply to the user when they execute commands with "sudo". The first setting "env_reset" means that when the user runs a command using "sudo", most of their environment variables will be cleared (reset). This is good, as it prevents malicious or unintended environment variables from affecting privileged commands. There is more however. The "env_keep" directive can be used to explicitly retain certain variables, and exclude them from those variables effected by the "env_reset" directive. Here there are two environment variables that have been explicity <strong>kept</strong>.</p>
+                <p>The first is the "LD_PRELOAD" environment variable, which is used in Linux to specify shared libraries that should be loaded <strong>before</strong> any other standard system libraries. This means that when the user runs a command as "sudo", the libraries sepcified in "LD_PRELOAD" will still be preloaded. Secondly, the "LD_LIBRARY_PATH" environment variable is also retained when the current user executes privileged commands. "LD_LIBRARY_PATH" is an environment variables that tells the dynamic linker where to look for shared libraries <strong>before</strong> searching in the system's default library paths.</p>
+                <p>Why is this an issue? Well, both the "LD_PRELOAD" and the "LD_LIBRARY_PATH" environment variables will both be inherited from the current user's environment, whenever the user executes a privileged command with "sudo". Therefore, we can simply create a malicious shared object file, run one of the programs that we are allowed to run via "sudo" (listed when running "sudo -l"), whilst setting the "LD_PRELOAD" environment variable to point to the full path of our malicious shared object.</p>
+                <p>First let's write a privilege escalation exploit in C.</p>
+                <pre><code>#include <sys/types.h>
+#include <stdlib.h>
+
+void_init() {
+        unsetenv("LD_PRELOAD");
+        setresuid(0,0,0);
+        system("/bin/bash -p");
+}</code></pre>
+            
             </section>
 
 
