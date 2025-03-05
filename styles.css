@@ -1,3 +1,23 @@
+.section-content {
+    display: none; /* Hide content initially */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+.section-header {
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: 1px solid #007bff;
+    font-size: 18px;
+}
+
+.section-header:hover {
+    background-color: #0056b3;
+}
+
 nav ul {
     list-style-type: none;
     padding: 0;
