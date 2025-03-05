@@ -1,3 +1,7 @@
+section {
+    margin-bottom: 10px; /* Adds space between each section */
+}
+
 .section-content {
     display: none; /* Hide content initially */
     padding: 10px;
@@ -12,6 +16,8 @@
     padding: 10px;
     border: 1px solid #007bff;
     font-size: 18px;
+    margin-bottom: 5px; /* Adds a small gap below the header */
+    border-radius: 5px 5px 0 0; /* Rounded corners for a smooth look */
 }
 
 .section-header:hover {
