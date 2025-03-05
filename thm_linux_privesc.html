@@ -125,9 +125,13 @@ Password:
 root@debian/home/user# whoami
 root</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
-	            <section id="Three">
-	                <h2>Writable /etc/shadow</h2>                
-	                <p>This technique is similar to the last. The "/etc/shadow" file should only be writable by root. In our case, we can see that it is writable by absolutely anyone, bad idea!</p>
+		</div>
+            </section>
+
+	   <section id="Three">
+		<div class="section-header">Writable /etc/shadow</div>
+	   	<div class="section-content">
+			<p>This technique is similar to the last. The "/etc/shadow" file should only be writable by root. In our case, we can see that it is writable by absolutely anyone, bad idea!</p>
 	                <pre><code>user@debian:~$ ls -l /etc/shadow
 	-rw-r--rw- 1 root shadow 837 Aug 25 2019 /etc/shadow</code></pre>
 	                <p>In this instance we can simply replace the root user's hash with our own hash. First, create the hash:</p>
@@ -140,7 +144,8 @@ root</code></pre>
 	root</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
 		</div>
-            </section>
+	   </section>
+		
             <section id="Four">
                 <h2>Writeable /etc/passwd</h2>
                 <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
