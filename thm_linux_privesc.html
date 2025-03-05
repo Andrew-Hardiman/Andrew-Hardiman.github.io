@@ -167,9 +167,10 @@ root</code></pre>
 	    </section>
 		
             <section id="Five">
-                <h2>Sudo - Shell Escape Sequences</h2>
-                <p>Although this technique is listed fairly late in the challenge, it is actually one of the first things I would try, as it is so straight forward. If you run "sudo -l" as your currently logged in user, the system will list all of the programs that this user is allowed to run with <strong>sudo</strong> privileges. Furthermore, if the system is particularly badly configured it may allow passwordless execution of these programs. Running "sudo -l" will give you this information. Let's try it on our box and see:</p>
-                <pre><code>user@debian:~$ sudo -l
+                <div class="section-header">Sudo - Shell Escape Sequences</div>
+	        <div class="section-content">
+	                <p>Although this technique is listed fairly late in the challenge, it is actually one of the first things I would try, as it is so straight forward. If you run "sudo -l" as your currently logged in user, the system will list all of the programs that this user is allowed to run with <strong>sudo</strong> privileges. Furthermore, if the system is particularly badly configured it may allow passwordless execution of these programs. Running "sudo -l" will give you this information. Let's try it on our box and see:</p>
+	                <pre><code>user@debian:~$ sudo -l
 User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/iftop
     (root) NOPASSWD: /usr/bin/find
@@ -182,32 +183,34 @@ User user may run the following commands on this host:
     (root) NOPASSWD: /usr/bin/nmap
     (root) NOPASSWD: /usr/sbin/apache2
     (root) NOPASSWD: /bin/more</code></pre>
-                <p>This configuration is terrible, we can run a total of eleven programs with root privileges and there is no password required in order to do so! We can even do what we like with apache2, this could well be the program running the main application being served from this server.</p>
-                <p>When you find a situation like this, a great resource to use is <a href="https://gtfobins.github.io/">GTFOBins</a>. This repository is basically a list of Unix binaries that can be used to bypass local security restrictions. We know we can run any of the programs listed using "sudo". Therefore, we simply need to find a matching program in the <strong>GTFObins</strong> list that has "sudo" listed as one of its functions. I will not go through all of these programs here, but I would advise you to do each one in turn, as I did, in order to get a good feel for how this works. Let's pick a program at random, let us pick "/usr/bin/less" ("less" is a program for paging through text one screenful at a time). Search for "less" in the <strong>GTFOBins</strong> list, you will find that "sudo" is in fact listed as one the exploitable functions. Click on "Sudo". Here it will show you how to exploit this binary in order to escape the program and directly spawn a shell. Since we will be running the program as root, it will spawn a root shell and we will own the system. Let's try it out:</p>
-            <pre><code>user@debian:~$ sudo less /etc/profile</code></pre>
-            <p>We open "/etc/profile" (this can be any file) with <strong>less</strong> using sudo, meaning <strong>less</strong> runs with root privileges. Inside <strong>less</strong> typing "!" followed by a command runs that command in a shell. Therefore, running "!/bin/sh" will spawn a shell, with the same privileges as <strong>less</strong> which in our case is root due to sudo.</p>
-                <pre><code>sh-4.1# whoami
+	                <p>This configuration is terrible, we can run a total of eleven programs with root privileges and there is no password required in order to do so! We can even do what we like with apache2, this could well be the program running the main application being served from this server.</p>
+	                <p>When you find a situation like this, a great resource to use is <a href="https://gtfobins.github.io/">GTFOBins</a>. This repository is basically a list of Unix binaries that can be used to bypass local security restrictions. We know we can run any of the programs listed using "sudo". Therefore, we simply need to find a matching program in the <strong>GTFObins</strong> list that has "sudo" listed as one of its functions. I will not go through all of these programs here, but I would advise you to do each one in turn, as I did, in order to get a good feel for how this works. Let's pick a program at random, let us pick "/usr/bin/less" ("less" is a program for paging through text one screenful at a time). Search for "less" in the <strong>GTFOBins</strong> list, you will find that "sudo" is in fact listed as one the exploitable functions. Click on "Sudo". Here it will show you how to exploit this binary in order to escape the program and directly spawn a shell. Since we will be running the program as root, it will spawn a root shell and we will own the system. Let's try it out:</p>
+	            <pre><code>user@debian:~$ sudo less /etc/profile</code></pre>
+	            <p>We open "/etc/profile" (this can be any file) with <strong>less</strong> using sudo, meaning <strong>less</strong> runs with root privileges. Inside <strong>less</strong> typing "!" followed by a command runs that command in a shell. Therefore, running "!/bin/sh" will spawn a shell, with the same privileges as <strong>less</strong> which in our case is root due to sudo.</p>
+	                <pre><code>sh-4.1# whoami
 root</code></pre>
-                <p><strong>Congratulations, you own the system!</strong></p>
-                <p>There is an "extra credit" with this particular part of the challenge. We saw eariler that our low-privileged user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the techinque already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
-                <p><strong>Reading the root user hash with Apache2</strong></p>
-                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privileges to root. Let us further assume that both the "/etc/shadow" and "/etc/passwd" files are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" we will see the following:</p>
-                <pre><code>user@debian:~$ sudo -l
+	                <p><strong>Congratulations, you own the system!</strong></p>
+	                <p>There is an "extra credit" with this particular part of the challenge. We saw eariler that our low-privileged user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the techinque already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
+	                <p><strong>Reading the root user hash with Apache2</strong></p>
+	                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privileges to root. Let us further assume that both the "/etc/shadow" and "/etc/passwd" files are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" we will see the following:</p>
+	                <pre><code>user@debian:~$ sudo -l
 User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2</code></pre>
-                <p>Therefore, we can use <strong>Apache2</strong> in order to "dump" the password hash of the root user. By executing Apache2 and passing it the "/etc/shadow" file as a configuration file, Apache will try to parse it as a valid Apache configuration file. At this point Apache will likely fail to start, as "/etc/shadow" is not a valid Apache configuration file and it is not in Apache's expected configuration format. This would not normally pose a security issue, as "/etc/shadow" is configured to only be readble by the root user. However, being as though we can run Apache as the root user, using sudo, Apache will, in turn, attempt to read the "/etc/shadow" file as root. When Apache fails to parse "/etc/shadow" it will likely reveal some content from the file in its error message. Let's try it and see:</p>
-                <pre><code>user@debian:~$ sudo /usr/sbin/apache2 -f /etc/shadow 
+	                <p>Therefore, we can use <strong>Apache2</strong> in order to "dump" the password hash of the root user. By executing Apache2 and passing it the "/etc/shadow" file as a configuration file, Apache will try to parse it as a valid Apache configuration file. At this point Apache will likely fail to start, as "/etc/shadow" is not a valid Apache configuration file and it is not in Apache's expected configuration format. This would not normally pose a security issue, as "/etc/shadow" is configured to only be readble by the root user. However, being as though we can run Apache as the root user, using sudo, Apache will, in turn, attempt to read the "/etc/shadow" file as root. When Apache fails to parse "/etc/shadow" it will likely reveal some content from the file in its error message. Let's try it and see:</p>
+	                <pre><code>user@debian:~$ sudo /usr/sbin/apache2 -f /etc/shadow 
 Syntax error on line 1 of /etc/shadow:
 Invalid command 'root:$6$Tb/euwmK$................'</code></pre>
-                <p>Sure enough it worked! Apache kindly printed the root password hash to the terminal for us. We can now attempt to crack this hash with John the Ripper.</p>
-                <p>We can use format specific cracking, as we know that the identifier "$6$" refers to the <strong>sha512crypt</strong> hash type. Furthermore, this is a Linux shadow file hash, modern Linux distros use <strong>sha512crypt</strong> (NB: sha512crypt is NOT the same as SHA-512). So let's try and crack this hash:</p>
-                <pre><code>user@local:~/src/john/run$ ./john --format=sha512crypt --fork=8 --wordlist={wordlist_path} {hash_file_path}</code></pre>
-                <p>This was successful, but I will will not show the password here, you can do the work yourself! We can now switch to the root user. Having done so, we will have successfully owned the system:</p>
-                <pre><code>user@debian:~$ su root
+	                <p>Sure enough it worked! Apache kindly printed the root password hash to the terminal for us. We can now attempt to crack this hash with John the Ripper.</p>
+	                <p>We can use format specific cracking, as we know that the identifier "$6$" refers to the <strong>sha512crypt</strong> hash type. Furthermore, this is a Linux shadow file hash, modern Linux distros use <strong>sha512crypt</strong> (NB: sha512crypt is NOT the same as SHA-512). So let's try and crack this hash:</p>
+	                <pre><code>user@local:~/src/john/run$ ./john --format=sha512crypt --fork=8 --wordlist={wordlist_path} {hash_file_path}</code></pre>
+	                <p>This was successful, but I will will not show the password here, you can do the work yourself! We can now switch to the root user. Having done so, we will have successfully owned the system:</p>
+	                <pre><code>user@debian:~$ su root
 Password:
 root@debian:/home/user# whoami
 root</code></pre>
+		</div>
             </section>
+			
             <section id="Six">
                 <h2>Sudo - Environment Variables</h2>
                 <p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
