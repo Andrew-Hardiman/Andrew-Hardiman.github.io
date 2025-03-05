@@ -238,7 +238,7 @@ Matching Defaults entries for user on this host:
 User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2</code></pre>
                 <p>From this output, we see that: the "LD_LIBRARY_PATH" environment variable is <strong>not reset</strong> when using "sudo", meaning we can manipulate it; our user can run "/usr/sbin/apache2" as root without requiring a password. This combination presents an opportunity for privilege escalation.</p>
-                <p>To determine which shared libraries "apache2" depends on, we use "ldd" (List Dynamic Dependencies) command:</p>
+                <p>To determine which shared libraries "apache2" depends on, we use the "ldd" (List Dynamic Dependencies) command:</p>
                 <pre><code>user@debian:~$ ldd /usr/sbin/apache2
     linux-vdso.so.1 =>  (0x00007fff819ff000)
 	libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f288296d000)
