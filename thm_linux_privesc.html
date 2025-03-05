@@ -221,6 +221,13 @@ void _init() {
                 <p>The code here is straightforward. First, we include two header files: "&lt;unistd.h&gt;", which is required for "setresuid()", and "&lt;stdlib.h&gt;", which provides functions like "system()" and "unsetenv()". We then define our function, "_init()". The "void" keyword tells the compiler that the function will not return any value.</p> 
                     <p>We use "_init()" instead of "main()" because "main()" is only executed when running a standalone C program (compiled as an executable). However, since we want our exploit to be loaded dynamically via "LD_PRELOAD", "_init()" is the better choice. This is because "_init()" executes automatically before the target program's "main()" function when the shared library is preloaded, allowing us to escalate privileges before any other code runs.</p>
                 <p>Now, let's break down the body the "_init()" function. The first line removes the "LD_RRELOAD" environment variable using "unsetenv()". This covers our tracks, as we will be setting this variable to point to our malicious program. Next we set the real, effective, and saved user IDs to 0, which is the root user. This effectively grants us full root privileges for the remainder of our exploit. Finally, we use the "system()" command to spawn a root shell, ensuring that our elevated access persists.</p>
+                <p>Now we simply complie our malcious C code, creating a shared object file. We will save this file in the "/tmp" directory, so that it clears on reboot.</p>
+                <pre><code>user@debian:~$ gcc -fPIC -shared -nostartfiles -o /tmp/naughty.so /home/user/naughty.c</code></pre>
+                 <p>We can now simply run any of the programs that our user is allowed to run with "sudo", setting the "LD_REPLOAD" variable to point to our malicious shared object file in the process, and we will spawn a root shell.</p>
+                <pre><code>user@debian:~$ sudo LD_PRELOAD=/tmp/naughty.so nano
+root@debian:/home/usr#</code></pre>
+                <p><strong>Congratulations, you own the system!</strong></p>
+            
             
             </section>
 
