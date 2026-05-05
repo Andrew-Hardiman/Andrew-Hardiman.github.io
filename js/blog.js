@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('blog-data.json')
+    fetch('/data/blog-data.json')
         .then(response => response.json())
         .then(data => {
             const blogPostsDiv = document.getElementById('blog-posts');
