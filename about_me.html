@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Andrew Hardiman: About Me</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Andrew Hardiman — Backend Software Engineer extending into offensive security. OSCP+ in prep, top 3% on TryHackMe.">
+    <meta name="author" content="Andrew Hardiman">
+    <title>Andrew Hardiman — About</title>
+    <!-- Security-related meta tags -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="index, follow">
+    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="styles.css">
-
     <!-- Favicon -->
     <link rel="icon" href="logo.png" type="image/png">
+    <!-- Open Graph for better sharing on social media -->
+    <meta property="og:title" content="Andrew Hardiman — About">
+    <meta property="og:description" content="Backend Software Engineer extending into offensive security. OSCP+ in prep, top 3% on TryHackMe.">
+    <meta property="og:image" content="https://andrew-hardiman.github.io/logo.png">
+    <meta property="og:url" content="https://andrew-hardiman.github.io/about_me.html">
+    <meta property="og:type" content="website">
+    <!-- Twitter Card for better sharing on Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Andrew Hardiman — About">
+    <meta name="twitter:description" content="Backend Software Engineer extending into offensive security. OSCP+ in prep, top 3% on TryHackMe.">
+    <meta name="twitter:image" content="https://andrew-hardiman.github.io/logo.png">
+    <!-- Links to JavaScript Files -->
+    <script src="main.js" defer></script>
 </head>
 <body>
     <header>
@@ -19,52 +39,43 @@
                 <li class="dropdown">
                     <a href="#">CTF Write-ups</a>
                     <ul class="dropdown-content">
-                        <li><a href="hackthebox.html">Hack the Box</a></li>
+                        <!-- <li><a href="hackthebox.html">Hack the Box</a></li> -->
                         <li><a href="tryhackme.html">Try Hack Me</a></li>
                     </ul>
                 </li>
-                <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
     </header>
     
     <main>
-        <section>
-            <h2>Andrew Hardiman.</h2>
-        <!--
-            <p>I'm currently a web developer with a passion for cybersecurity. I enjoy building secure applications and learning about the latest security trends.</p>
-        -->
-        </section>
+    <section>
+        <p>Backend Software Engineer based in Bournemouth, UK. Six years' production SaaS experience in PHP, AWS, and Linux. Currently building offensive security capability — OSCP+ in preparation, top <span data-thm="percentile">3%</span> on TryHackMe.</p>
+    </section>
 
-        <section>
-            <h2>My Journey</h2>
-        <!--
-            <p>With a strong foundation in web development, I am now focusing on expanding my skills into penetration testing. I love tackling complex challenges and finding vulnerabilities in systems.</p>
-        -->
-        </section>
+    <section>
+        <h2>Background</h2>
+        <p>Backend Software Engineer at iProtectU, 2020-2026. End-to-end ownership of backend services, REST APIs, and AWS infrastructure for a multi-tenant SaaS platform — 100+ customer environments and 100+ EC2 instances under CI/CD pipelines. Highlights include 90%+ performance improvements on critical backend processes and refactoring of legacy systems into modern OOP/MVC architectures.</p>
+        <p>Zend Certified PHP Engineer. Certificate of Cloud Security Knowledge (CCSK v4). BCS Level 4 Diploma in Software Development Methodologies. BSc Geography, University of Plymouth.</p>
+    </section>
 
-        <section>
-            <h2>Skills</h2>
-            <ul>
-                <li>Web Development (HTML, CSS, JavaScript, PHP)</li>
-           <!--
-                <li>Cybersecurity Principles</li>
-                <li>Penetration Testing Tools (e.g., Burp Suite, Nmap)</li>
-                <li>CTF Challenges and Write-ups</li>
-                <li>Problem Solving and Critical Thinking</li>
-            -->
-            </ul>
-        </section>
+    <section>
+        <h2>Current focus</h2>
+        <p>Offensive security — applying the same systems-level rigor to attack surfaces.</p>
+        <ul>
+            <li>OSCP+ in preparation</li>
+            <li>Top <span data-thm="percentile">3%</span> on <a href="https://tryhackme.com/p/AndrewHardiman" target="_blank" rel="noopener">TryHackMe</a> — <span data-thm="rooms">137</span> rooms completed, rank <span data-thm="rank">0xA</span></li>
+            <li>OWASP-mapped AppSec lab: <a href="https://github.com/Andrew-Hardiman/appsec-lab" target="_blank" rel="noopener">appsec-lab</a></li>
+            <li>CTF write-ups: see <a href="tryhackme.html">CTF Write-ups</a></li>
+        </ul>
+    </section>
 
-        <section>
-            <h2>Goals</h2>
-          <!--
-            <p>My goal is to secure a position as a penetration tester where I can apply my skills to help organizations protect their systems and data. I am committed to continuous learning in this dynamic field.</p>
-          -->
-        </section>
+    <section>
+        <h2>Find me</h2>
+        <p>Full career history on <a href="https://www.linkedin.com/in/andrew-hardiman-78a83427a/" target="_blank" rel="noopener">LinkedIn</a>.</p>
+    </section>
     </main>
     <footer>
-        <p>&copy; 2024 Andrew Hardiman. All rights reserved.</p>
+        <p>&copy; <span id="year">2026</span> Andrew Hardiman. All rights reserved.</p>
     </footer>
 </body>
 </html>
