@@ -1,4 +1,4 @@
-// section_fold.js
+// /js/section_fold.js
 document.querySelectorAll(".section-header").forEach(header => {
     header.addEventListener("click", () => {
         let content = header.nextElementSibling;
