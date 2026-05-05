@@ -1,6 +1,5 @@
 [
     {
-        "date": "2024-11-30",
         "difficulty" : "Medium",
         "summary": "Linux Privilege Escalation on a Debian VM.",
         "title": "Linux PrivEsc",
@@ -8,7 +7,6 @@
         "vuln" : ""
     },
     {
-        "date": "2024-10-26",
         "difficulty" : "Easy",
         "summary": "Deploy & hack into a Windows machine, leveraging common misconfigurations issues.",
         "title": "Blue",
@@ -16,9 +14,8 @@
         "vuln" : " (CVE-2017-0143 | ms17-010)"
     },
     {
-        "date": "2024-09-13",
         "difficulty" : "Easy",
-        "summary": "A Rick and Morty CTF. Help turn Rick back into a human!",
+        "summary": "A Rick and Morty themed CTF.",
         "title": "Pickle Rick",
         "url": "thm_picklerick.html",
         "vuln" : " (Web Application Exploit)"
