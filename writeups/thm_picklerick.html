@@ -3,11 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Write-up: Pickle Rick</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="TryHackMe Pickle Rick write-up — web exploitation, reverse shell, and sudo NOPASSWD privilege escalation.">
+    <meta name="author" content="Andrew Hardiman">
+    <title>Andrew Hardiman — CTF Write-up: Pickle Rick</title>
+    <!-- Security-related meta tags -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="index, follow">
+    <!-- Link to external stylesheet -->
     <link rel="stylesheet" href="/css/styles.css">
-
     <!-- Favicon -->
     <link rel="icon" href="/img/logo.png" type="image/png">
+    <!-- Open Graph for better sharing on social media -->
+    <meta property="og:title" content="Andrew Hardiman — CTF Write-up: Pickle Rick">
+    <meta property="og:description" content="TryHackMe Pickle Rick write-up — web exploitation, reverse shell, and sudo NOPASSWD privilege escalation.">
+    <meta property="og:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <meta property="og:url" content="https://andrew-hardiman.github.io/writeups/thm_picklerick.html">
+    <meta property="og:type" content="article">
+    <!-- Twitter Card for better sharing on Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Andrew Hardiman — CTF Write-up: Pickle Rick">
+    <meta name="twitter:description" content="TryHackMe Pickle Rick write-up — web exploitation, reverse shell, and sudo NOPASSWD privilege escalation.">
+    <meta name="twitter:image" content="https://andrew-hardiman.github.io/img/logo.png">
+    <!-- Links to JavaScript Files -->
+    <script src="/js/main.js" defer></script>
 </head>
 <body>
     <header>
@@ -19,11 +39,10 @@
                 <li class="dropdown">
                     <a href="#">CTF Write-ups</a>
                     <ul class="dropdown-content">
-                        <li><a href="hackthebox.html">Hack the Box</a></li>
+                        <!-- <li><a href="hackthebox.html">Hack the Box</a></li> -->
                         <li><a href="/writeups/tryhackme.html">Try Hack Me</a></li>
                     </ul>
                 </li>
-                <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
     </header>
@@ -57,7 +76,7 @@
                 <h2>Step Two - Enumeration</h2>
                 <p>Enumerate the websites directories...</p>
                 <pre><code>case@local:~$ gobuster dir -u http://10.10.236.162 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/big.txt -t 64 -o rickCtfDirScan.txt 2>/dev/null</code></pre>
-                <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertisied by the webserver and will look for any sensitive files also...</p>
+                <p>Let us also run a basic Nikto scan, as this will retrieve the headers advertised by the webserver and will look for any sensitive files also...</p>
                 <pre><code>case@local:~$ nikto -h http://10.10.236.162 -o rickCtfNiktoScan.txt</code></pre>
                 <p>There is quite a lot that could be interesting to us in both of the scan output files. Firstly, there is a "robots.txt" file, identified by the gobuster scan. Typically this file is used by websites to give instructions to web crawlers. However, it might provide detail as to hidden directories or files, or even give clues to sensitive information. Let us see if we can request it directly in the URL...</p>
                 <img src="/writeups/img/robots_file.png" alt="/writeups/img/not_found.png">
@@ -130,7 +149,7 @@ www-data
     </main>
 
     <footer>
-        <p>&copy; 2024 Andrew Hardiman. All rights reserved.</p>
+        <p>&copy; <span id="year">2026</span> Andrew Hardiman. All rights reserved.</p>
     </footer>
 </body>
 </html>
