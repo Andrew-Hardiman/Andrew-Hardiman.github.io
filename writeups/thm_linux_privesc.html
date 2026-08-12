@@ -314,6 +314,105 @@ root@debian:/home/user#</code></pre>
 	                <p><strong>Congratulations, you own the system!</strong></p>
 		</div>			
 	    </section>
+
+		<section id="Seven">
+			<div class="section-header">Cron Jobs - File Permissions</div>
+	    	<div class="section-content">
+				<p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
+	                <pre><code>user@debian:~$ sudo -l
+Matching Defaults entries for user on this host:
+    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
+		
+User user may run the following commands on this host:
+    (root) NOPASSWD: /usr/sbin/iftop
+    (root) NOPASSWD: /usr/bin/find
+.... {truncated}</code></pre>
+			</div>			
+	    </section>
+
+		<section id="Eight">
+			<div class="section-header">Cron Jobs - PATH Environment Variable</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Nine">
+			<div class="section-header">Cron Jobs - Wildcards</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Ten">
+			<div class="section-header">SUID / SGID Executables - Known Exploits</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Eleven">
+			<div class="section-header">SUID / SGID Executables - Shared Object Injection</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Twelve">
+			<div class="section-header">SUID / SGID Executables - Environment Variables</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Thirteen">
+			<div class="section-header">SUID / SGID Executables - Abusing Shell Features (#1)</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Fourteen">
+			<div class="section-header">SUID / SGID Executables - Abusing Shell Features (#2)</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Fifteen">
+			<div class="section-header">Passwords & Keys - History Files</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Sixteen">
+			<div class="section-header">Passwords & Keys - Config Files</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Seventeen">
+			<div class="section-header">Passwords & Keys - SSH Keys</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Eighteen">
+			<div class="section-header">NFS</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
+
+		<section id="Nineteen">
+			<div class="section-header">Kernel Exploits</div>
+	    	<div class="section-content">
+	                
+			</div>			
+	    </section>
     
         </article>
     </main>
