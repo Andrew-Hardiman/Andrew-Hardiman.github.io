@@ -9,6 +9,10 @@ section {
     border-top: none;
 }
 
+.section-content.is-open {
+    display: block;
+}
+
 .section-header {
     cursor: pointer;
     background-color: #007bff;
