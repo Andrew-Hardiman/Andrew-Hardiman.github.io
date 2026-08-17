@@ -88,10 +88,18 @@ pre {
     font-family: 'Courier New', Courier, monospace;
 }
 
-code {
+
+pre code {
     display: block;
     padding-left: 0;
     color: #0f0;
+}
+
+/* inline code only — won't affect anything inside <pre> */
+:not(pre) > code {
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.05);
 }
 
 header h1 a {
