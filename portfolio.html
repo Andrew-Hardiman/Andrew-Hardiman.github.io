@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Andrew Hardiman — artifacts and credentials. Hand-built website, CTF write-ups, AppSec lab.">
+    <meta name="description" content="Andrew Hardiman — artifacts and credentials. Tested offensive tooling, penetration-testing playbooks, OWASP-mapped AppSec lab, CTF write-ups.">
     <meta name="author" content="Andrew Hardiman">
     <title>Andrew Hardiman — Portfolio</title>
     <!-- Security-related meta tags -->
@@ -17,14 +17,14 @@
     <link rel="icon" href="/img/logo.png" type="image/png">
     <!-- Open Graph for better sharing on social media -->
     <meta property="og:title" content="Andrew Hardiman — Portfolio">
-    <meta property="og:description" content="Artifacts and credentials. Hand-built website, CTF write-ups, AppSec lab.">
+    <meta property="og:description" content="Artifacts and credentials. Tested offensive tooling, penetration-testing playbooks, OWASP-mapped AppSec lab, CTF write-ups.">
     <meta property="og:image" content="https://andrew-hardiman.github.io/img/logo.png">
     <meta property="og:url" content="https://andrew-hardiman.github.io/portfolio.html">
     <meta property="og:type" content="website">
     <!-- Twitter Card for better sharing on Twitter -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Andrew Hardiman — Portfolio">
-    <meta name="twitter:description" content="Artifacts and credentials. Hand-built website, CTF write-ups, AppSec lab.">
+    <meta name="twitter:description" content="Artifacts and credentials. Tested offensive tooling, penetration-testing playbooks, OWASP-mapped AppSec lab, CTF write-ups.">
     <meta name="twitter:image" content="https://andrew-hardiman.github.io/img/logo.png">
     <!-- Links to JavaScript Files -->
     <script src="/js/main.js" defer></script>
@@ -34,7 +34,7 @@
         <h1><a href="/index.html">Andrew Hardiman</a></h1>
         <nav>
             <ul>
-                <li><a href="/about_me.html">About Me</a></li>
+                <li><a href="/index.html">Home</a></li>
                 <li><a href="/portfolio.html">Portfolio</a></li>
                 <li class="dropdown">
                     <a href="#">CTF Write-ups</a>
@@ -49,24 +49,34 @@
 
     <main>
         <section>
-            <p>Artifacts and credentials. Identity and work history on the <a href="/about_me.html">About</a> page.</p>
+            <p>Artifacts and credentials. Positioning and background on the <a href="/index.html">Home</a> page.</p>
         </section>
 
         <section>
             <h2>Artifacts</h2>
             <ul>
-                <li><strong>This website</strong> — hand-built static site, no themes, templates, or generators. <a href="https://github.com/Andrew-Hardiman/Andrew-Hardiman.github.io" target="_blank" rel="noopener">Source on GitHub</a>.</li>
-                <li><strong>CTF write-ups</strong> — walkthroughs covering enumeration, exploitation, and privilege escalation across TryHackMe rooms. <a href="/writeups/tryhackme.html">View the write-ups</a>.</li>
-                <li><strong>AppSec lab</strong> — OWASP-mapped case studies. Each has a vulnerable-baseline branch and a remediated main branch with regression tests. Three studies live. <a href="https://github.com/Andrew-Hardiman/appsec-lab" target="_blank" rel="noopener">appsec-lab on GitHub</a>.</li>
+                <li><strong>offsec-scripts</strong> &mdash; 15+ field tools for enumeration, credential triage, and privilege-escalation checks, written in Bash and Python. Each ships with a dedicated unit-test harness covering shell-semantics and parsing edge cases. <a href="https://github.com/Andrew-Hardiman/offsec-scripts" target="_blank" rel="noopener">offsec-scripts on GitHub</a>.</li>
+                <li><strong>offsec-playbooks</strong> &mdash; a structured penetration-testing methodology vault: 26+ Linux and Windows privilege-escalation techniques, exploit walkthroughs (Dirty COW, Exim <code>perl_startup</code>, MS15-051, MS16-032), a full web-application testing workflow, and credential-extraction, hashing, and encoding references. <a href="https://github.com/Andrew-Hardiman/offsec-playbooks" target="_blank" rel="noopener">offsec-playbooks on GitHub</a>.</li>
+                <li><strong>appsec-lab</strong> &mdash; OWASP Top 10 (2025)-mapped case studies in PHP and Python. Each keeps a vulnerable-baseline branch and a regression-tested remediation on main, following a threat &rarr; repro &rarr; impact &rarr; fix &rarr; prevention structure. Three studies live: A01 broken access control (IDOR), A02 security misconfiguration, A03 supply-chain. <a href="https://github.com/Andrew-Hardiman/appsec-lab" target="_blank" rel="noopener">appsec-lab on GitHub</a>.</li>
+                <li><strong>CTF write-ups</strong> &mdash; TryHackMe walkthroughs covering enumeration, exploitation, and privilege escalation, written as reproducible operator notes. <a href="/writeups/tryhackme.html">View the write-ups</a>.</li>
+                <li><strong>This website</strong> &mdash; hand-built static site: no themes, templates, or generators. <a href="https://github.com/Andrew-Hardiman/Andrew-Hardiman.github.io" target="_blank" rel="noopener">Source on GitHub</a>.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Training &amp; standing</h2>
+            <ul>
+                <li><strong>OSCP+</strong> &mdash; in preparation.</li>
+                <li><strong>Top <span data-thm="percentile">3%</span> on TryHackMe</strong> &mdash; <span data-thm="rooms">144</span> rooms completed, rank <span data-thm="rank">0xA</span>. <a href="https://tryhackme.com/p/AndrewHardiman" target="_blank" rel="noopener">Profile</a>.</li>
             </ul>
         </section>
 
         <section>
             <h2>Certifications</h2>
             <ul>
-                <li><strong>Certificate of Cloud Security Knowledge (CCSK v4)</strong> — Cloud Security Alliance, 2022.</li>
-                <li><strong>Zend Certified PHP Engineer</strong> — Zend, 2022.</li>
-                <li><strong>BCS Level 4 Diploma in Software Development Methodologies</strong> — British Computer Society, 2020.</li>
+                <li><strong>Certificate of Cloud Security Knowledge (CCSK v4)</strong> &mdash; Cloud Security Alliance, 2022.</li>
+                <li><strong>Zend Certified PHP Engineer</strong> &mdash; Zend, 2022.</li>
+                <li><strong>BCS Level 4 Diploma in Software Development Methodologies</strong> &mdash; British Computer Society, 2020.</li>
             </ul>
         </section>
     </main>

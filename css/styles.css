@@ -110,4 +110,9 @@ header h1 a:hover {
     text-decoration: underline;
 }
 
+/* Active-nav indicator — current page reads as "you are here", not a link */
+nav a[aria-current="page"] {
+    font-weight: bold;
+    color: #333;
+}
 
